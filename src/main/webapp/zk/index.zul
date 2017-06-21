@@ -1,0 +1,113 @@
+<zk xmlns:x="xhtml">
+    <vlayout vflex="1" apply="keikai.demo.zk.SpreadsheetComposer">
+        Control Area:
+        <hlayout spacing="50px" style="border: 3px solid skyblue;">
+        	<vlayout>
+        		<div>
+        			KeyCode:
+        			<label id="keyCode" />
+        		</div>
+        		<div>
+        			Selection:
+        			<label id="msg" />
+        		</div>
+        		<div>
+        			FocusTo:
+        			<textbox id="focusTo" constraint="no empty" />
+        			(Like A10)
+        		</div>
+        		<div>
+        			<label id="cell" value="A1"
+        				style="font-weight:bold;" />
+        			:
+        			<textbox id="cellValue" constraint="no empty"></textbox>
+        			<button id="enter" label="submit" />
+        		</div>
+        		<div>
+        			CellInfo:
+        			<label id="cellInfo" />
+        		</div>
+        	</vlayout>
+        	<vlayout>
+        		<button id="focusCell" label="showFocusCell" />
+        		<button id="clearContents"
+        			label="clearContents(from the selection)" />
+        		<button id="addMore" label="addMoreData" />
+        		<button id="uploader" label="Upload Excel"
+        			upload="true" />
+        	</vlayout>
+        	<vlayout>
+        		Auto Filter:
+        		<div>
+        			Field Index:
+        			<intbox id="filterField" value="0" />
+        		</div>
+        		<div>
+        			Criteria1:
+        			<textbox id="filterCriteria1" />
+        		</div>
+        		<div>
+        			Operator:
+        			<selectbox id="filterOperator" />
+        		</div>
+        		<div>
+        			Criteria2:
+        			<textbox id="filterCriteria2" />
+        		</div>
+        		<div>
+        			VisibleDropDown:
+        			<radiogroup id="filterDropDown">
+        				<radio label="Enable" selected="true" />
+        				<radio label="Disable" />
+        			</radiogroup>
+        		</div>
+        		<div>
+        			<button id="filterBtn" label="Apply" />
+        			<button id="filterClear" label="Clear Filter" />
+        		</div>
+        	</vlayout>
+        	<vlayout>
+        		Border Style:
+        		<div>
+        			Borders Index:
+        			<selectbox id="borderIndexBox" />
+        		</div>
+        		<div>
+        			Border Line Style:
+        			<selectbox id="borderLineStyleBox" />
+        		</div>
+        		<div>
+        			Border Weight:
+        			<selectbox id="borderWeightBox" />
+        		</div>
+        		<div>
+        			Border Color:
+        			<textbox id="borderColor" />
+        		</div>
+        		<div>
+        			<button id="applyBorder" label="Apply" />
+        			<button id="clearBorder" label="Clear" />
+        		</div>
+        	</vlayout>
+        	<vlayout>
+        		CellStyle:
+        		<div>
+        			Apply Font:
+        			<button id="applyFont" label="Apply Font" />
+        		</div>
+        		<div>
+        			Apply Format:
+        			<textbox id="numfmt" />
+        			<button id="applyFormat" label="Apply NumFormat" />
+        		</div>
+        	</vlayout>
+        </hlayout>
+        <window id="mywin" title="Keikai Spreadsheet"
+                border="normal" vflex="true">
+            <div id="myss" height="100%"></div>
+        </window>
+        <popup id="contextMenu">
+            <label id="contextMsg"/>
+        </popup>
+    </vlayout>
+</zk>

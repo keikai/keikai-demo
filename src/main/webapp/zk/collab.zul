@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+index.zul
+
+	Purpose:
+		
+	Description:
+		
+	History:
+		16/05/2017, Created by jumperchen
+
+Copyright (C) 2017 Potix Corporation. All Rights Reserved.
+
+-->
+<zk xmlns:x="xhtml">
+    <vlayout vflex="1" apply="keikai.demo.zk.CollaborationKKComposer">
+
+        <!--<x:script id="script" type="text/javascript"/>-->
+        <label style="font-size: 16px">Hello ZK - Collaboration</label>
+        <hlayout spacing="50px" sclass="z-valign-bottom">
+            <vlayout>
+                <div>
+        Selection: <label id="msg"/>
+                </div>
+
+                <div>
+                    FocusTo: <textbox id="focusTo" constraint="no empty"/> (Like A10)
+                </div>
+        <div><label id="cell" value="A1" style="font-weight:bold;"/> : <x:i>fx</x:i> <textbox id="cellValue" constraint="no empty"></textbox> <button id="btn" label="submit"/></div>
+            </vlayout>
+            <vlayout>
+                <button id="focusCell" label="showFocusCell"/>
+                <button id="clearContents" label="clearContents(from the selection)"/>
+                <div> Sheet Visible:
+                <radiogroup id="sheetVisible">
+                    <radio label="visible" checked="true"/>
+                    <radio label="hidden"/>
+                    <radio label="veryHidden"/>
+                </radiogroup>
+                </div>
+            </vlayout>
+            <vlayout>
+                Border Style:
+                <div>BordersIndex: <selectbox id="borderIndex"/></div>
+                <div>BorderLineStyle: <selectbox id="borderLineStyle"/></div>
+                <div>BorderWeight: <selectbox id="borderWeight"/></div>
+                <div>BorderColor: <textbox id="borderColor"/></div>
+            </vlayout>
+        </hlayout>
+        <window id="mywin" title="Keikai Spreadsheet"
+                border="normal" vflex="true">
+            <div id="myss" height="100%"></div>
+        </window>
+    </vlayout>
+</zk>
