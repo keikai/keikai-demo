@@ -22,7 +22,7 @@ public class DemoFilter implements Filter {
 	public void doFilter(ServletRequest request, ServletResponse response,
 			FilterChain chain) throws IOException, ServletException {
 		initSpreadsheet(request);
-		File template = new File(request.getServletContext().getRealPath("/book/large.xlsx"));
+		File template = new File(request.getServletContext().getRealPath("/book/template.xlsx"));
 		fillCellData(template);
 		chain.doFilter(request, response);
 	}
@@ -44,11 +44,31 @@ public class DemoFilter implements Filter {
 						spreadsheet.getRange(row, col).applyValue(row+","+col); // The value is either String or Number value 
 					}
 				}
+				applyBorders();
+				applyFont();
 			}catch (Exception e) {
 				e.printStackTrace();
 			}
 		});
 
+	}
+
+	private void applyFont() {
+		Range range = spreadsheet.getRange("A1:B10");
+		CellStyle cellStyle = range.createCellStyle();
+		Font font = cellStyle.createFont();
+		font.setBold(true);
+		font.setName("Calibri");
+		cellStyle.setFont(font);
+		range.applyCellStyle(cellStyle);
+	}
+
+	private void applyBorders() {
+		Range range = spreadsheet.getRange("A1:B10");
+		Borders borders = range.createBorders(Configuration.borderIndexList[3]);
+		borders.setStyle(Configuration.borderLineStyleList[0]);
+		borders.setColor("#363636");
+		range.applyBorders(borders);
 	}
 
 	public void destroy() {

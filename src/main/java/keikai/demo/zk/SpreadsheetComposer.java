@@ -19,6 +19,7 @@ import java.util.concurrent.*;
 import java.util.function.*;
 import java.util.logging.*;
 
+import keikai.demo.Configuration;
 import kk.socket.thread.EventThread;
 
 import org.zkoss.zhtml.Script;
@@ -36,10 +37,9 @@ import com.keikai.client.api.event.*;
 import com.keikai.client.api.event.Events;
 
 /**
- * @author jumperchen, Hawk
+ * @author Hawk
  */
 public class SpreadsheetComposer extends SelectorComposer<Component> {
-	private static final String KEIKAI_SERVER = "http://114.34.173.199:8888";
 	private int counts;
 	private Spreadsheet spreadsheet;
 	private String selectedRange = "A1"; //cell reference
@@ -128,7 +128,7 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
 	 */
 	private void addEventListener() {
 		final Desktop desktop = getSelf().getDesktop();
-		MyEventListener listener = (e) -> {
+		ThrowingFunction listener = (e) -> {
 			RangeSelectEvent event = (RangeSelectEvent) e;
 			selectedRange = event.getActiveSelection().getA1Notation(); //get cell reference string
 			// get value first.
@@ -166,7 +166,7 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
 		spreadsheet.addEventListener(Events.ON_UPDATE_SELECTION, listener::accept);
 		spreadsheet.addEventListener(Events.ON_MOVE_FOCUS, listener::accept);
 
-		MyEventListener keyListener = (e) -> {
+		ThrowingFunction keyListener = (e) -> {
 			RangeKeyEvent keyEvent = (RangeKeyEvent) e;
 			try {
 				Executions.activate(desktop);
@@ -180,10 +180,8 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
 			}
 		};
 		
-		/*
-		 * open a context menu
-		 */
-		MyEventListener mouseListener = (e) -> {
+		// open a context menu
+		ThrowingFunction mouseListener = (e) -> {
 			CellMouseEvent mouseEvent = (CellMouseEvent) e;
 			try {
 				Executions.activate(desktop);
@@ -202,7 +200,7 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
 	 * get a spreadsheet java client and render spreadsheet on a browser 
 	 */
 	private void initSpreadsheet() {
-		spreadsheet = Keikai.newClient(KEIKAI_SERVER); //connect to keikai server
+		spreadsheet = Keikai.newClient(Configuration.KEIKAI_SERVER); //connect to keikai server
 		//pass target element's id and get keikai script URI
 		String scriptUri = spreadsheet.getURI(getSelf().getFellow("mywin").getFellow("myss").getUuid());
 		//load the initial script to render spreadsheet at the client
@@ -213,28 +211,23 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
 		initalScript.setPage(getPage());
 	}
 
-	static String[] borderIndexList = { "none", "diagonalDown", "diagonalUp", "edgeBottom", "edgeLeft", "edgeRight", "edgeTop",
-			"insideHorizontal", "insideVertical" };
-	static String[] borderLineStyleList = { "continuous", "dash", "dashDot", "dashDotDot", "dot", "double", "none",
-			"slantDashDot" };
-	static String[] autoFilterList = { "and", "bottom10Items", "bottom10Percent", "filterCellColor", "filterDynamic",
-			"filterFontColor", "filterIcon", "filterValues", "top10Items", "top10Percent" };
-	static String[] borderWeightList = { "hairline", "medium", "thick", "thin" };
-
 	private void initControlArea() {
-		borderIndexBox.setModel(new ListModelArray<Object>(borderIndexList));
-		borderIndexBox.setSelectedIndex(0);
-		borderLineStyleBox.setModel(new ListModelArray<Object>(borderLineStyleList));
+		borderIndexBox.setModel(new ListModelArray<Object>(Configuration.borderIndexList));
+		((Selectable)borderIndexBox.getModel()).addToSelection(Configuration.borderIndexList[3]);
+		
+		borderLineStyleBox.setModel(new ListModelArray<Object>(Configuration.borderLineStyleList));
+		((Selectable)borderLineStyleBox.getModel()).addToSelection(Configuration.borderLineStyleList[0]);
 		borderLineStyleBox.addEventListener("onSelect", (evt) -> {
 			((Selectable)borderWeightBox.getModel()).clearSelection();
 		});
 
-		borderWeightBox.setModel(new ListModelArray<Object>(borderWeightList));
+		borderWeightBox.setModel(new ListModelArray<Object>(Configuration.borderWeightList));
 		borderWeightBox.addEventListener("onSelect", (evt) -> {
 			((Selectable)borderLineStyleBox.getModel()).clearSelection();
 		});
-		filterOperator.setModel(new ListModelArray<Object>(autoFilterList));
-		((Selectable) filterOperator.getModel()).addToSelection(autoFilterList[7]);
+		
+		filterOperator.setModel(new ListModelArray<Object>(Configuration.autoFilterList));
+		((Selectable) filterOperator.getModel()).addToSelection(Configuration.autoFilterList[7]);
 	}
 
 	@Listen("onClick = #enter")
@@ -252,9 +245,12 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
 
 	@Listen("onClick = #focusCell")
 	public void focusCell(Event event) {
-		spreadsheet.loadActiveCell().thenApply(activate()).thenAccept((range) -> {
-			Clients.showNotification("Focus Cell: " + range.getA1Notation());
-		}).whenComplete(deactivate());
+		spreadsheet.loadActiveCell()
+			.thenApply(activate())
+			.thenAccept((range) -> {
+				Clients.showNotification("Focus Cell: " + range.getA1Notation());
+			})
+			.whenComplete(deactivate());
 	}
 
 
@@ -268,6 +264,7 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
 		String name = event.getMedia().getName();
 		spreadsheet.imports(name, event.getMedia().getStreamData());
 	}
+	//FIXME has bug
 	@Listen("onClick = #applyBorder")
 	public void applyBorders(Event evt) {
 		String borderIndex = (String) borderIndexBox.getModel().getElementAt(borderIndexBox.getSelectedIndex());
@@ -286,10 +283,10 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
 		}
 		borders.setColor(color);
 		range.applyBorders(borders);
-		CompletableFuture<CellStyle> cellStyle = range.loadCellStyle();
-		cellStyle.thenAccept((cellStyle1 -> {
-			System.out.println(cellStyle1.getBorders().toString());
-		}));
+		range.loadCellStyle()
+			.thenAccept((cellStyle -> {
+				System.out.println(cellStyle.getBorders().toString());
+			}));
 	}
 
 	@Listen("onClick = #clearBorder")
@@ -321,7 +318,7 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
 		}
 
 		spreadsheet.getRange(selectedRange).applyAutoFilter(field, criterial1,
-				autoFilterList[filterOperator.getSelectedIndex()], criterial2, filterDropDown.getSelectedIndex() == 0);
+				Configuration.autoFilterList[filterOperator.getSelectedIndex()], criterial2, filterDropDown.getSelectedIndex() == 0);
 	}
 
 	@Listen("onClick=#addMore")
@@ -352,11 +349,10 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
 		Font font = cellStyle.createFont();
 		font.setBold(true);
 		font.setName("Calibri");
-		font.setSize(20);
 		cellStyle.setFont(font);
 		range.applyCellStyle(cellStyle);
 
-
+		/*
 		CompletableFuture<List<RangeValue>> values = range.loadValues();
 		values.thenAccept((vals) -> {
 			for (RangeValue v : vals) {
@@ -368,6 +364,7 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
 						", format: " + cellValue.getFormat() + "]");
 			}
 		});
+		*/
 	}
 
 	@Listen("onClick = #applyFormat")
@@ -382,6 +379,7 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
 			Clients.showNotification("isReady > " + isReady);
 		}).whenComplete(deactivate());
 	}
+	
 	private <T> ExceptionableFunction<T, T> activate() {
 		Desktop desktop = getSelf().getDesktop();
 		return result -> {
@@ -417,7 +415,7 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
 	 * @author hawk
 	 *
 	 */
-	public interface MyEventListener extends Consumer<RangeEvent>{
+	public interface ThrowingFunction extends Consumer<RangeEvent>{
 		default void accept(RangeEvent event){
 			try {
 				acceptWithException(event);
