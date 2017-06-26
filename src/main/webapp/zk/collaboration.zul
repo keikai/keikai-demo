@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<zk xmlns:x="xhtml">
+	<window id="mywin" title="Spreadsheet Collaboration" border="normal" apply="keikai.demo.zk.CollaborationComposer"
+		vflex="true">
+		<div id="myss" height="100%"></div>
+	</window>
+</zk>
