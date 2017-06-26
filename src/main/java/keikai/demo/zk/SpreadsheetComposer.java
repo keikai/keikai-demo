@@ -341,6 +341,17 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
 		String cellValue = ((Textbox) event.getTarget().getFellow("cellValue")).getValue();
 		spreadsheet.getRange(cellReference).applyValue(cellValue);
 	}
+	
+	@Listen("onClick = #clearContents")
+	public void clearContents(Event event) {
+		spreadsheet.getRange(selectedRange).clearContents();
+	}
+	
+	@Listen("onClick = toolbarbutton[label='wrap']")
+	public void wrap(){
+		Range range = spreadsheet.getRange(selectedRange);
+		range.applyWrapText(true);;
+	}	
 
 	@Listen("onChange = #focusTo")
 	public void onChange(Event event) {
@@ -358,11 +369,6 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
 			.whenComplete(deactivate());
 	}
 
-
-	@Listen("onClick = #clearContents")
-	public void clearContents(Event event) {
-		spreadsheet.getRange(selectedRange).clearContents();
-	}
 
 
 	@Listen("onClick = #applyBorder")
