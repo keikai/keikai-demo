@@ -13,22 +13,20 @@ package keikai.demo.zk;
 
 import static com.keikai.util.Converter.numToAbc;
 
-import java.io.IOException;
-import java.util.List;
-import java.util.concurrent.*;
+import java.io.*;
 import java.util.function.*;
 import java.util.logging.*;
 
 import keikai.demo.Configuration;
-import kk.socket.thread.EventThread;
 
+import org.zkoss.util.media.Media;
 import org.zkoss.zhtml.Script;
-import org.zkoss.zk.device.*;
 import org.zkoss.zk.ui.*;
 import org.zkoss.zk.ui.event.*;
 import org.zkoss.zk.ui.select.SelectorComposer;
 import org.zkoss.zk.ui.select.annotation.*;
 import org.zkoss.zk.ui.util.Clients;
+import org.zkoss.zkex.zul.Colorbox;
 import org.zkoss.zul.*;
 import org.zkoss.zul.ext.Selectable;
 
@@ -40,7 +38,6 @@ import com.keikai.client.api.event.Events;
  * @author Hawk
  */
 public class SpreadsheetComposer extends SelectorComposer<Component> {
-	private int counts;
 	private Spreadsheet spreadsheet;
 	private String selectedRange = "A1"; //cell reference
 
@@ -48,8 +45,6 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
 	private Selectbox borderIndexBox;
 	@Wire
 	private Selectbox borderLineStyleBox;
-	@Wire
-	private Selectbox borderWeightBox;
 
 	@Wire
 	private Label keyCode;
@@ -74,6 +69,10 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
 	private Label cellInfo;
 	@Wire("#cellValue")
 	private Textbox cellValueBox;
+	@Wire
+	private Colorbox borderColorBox;
+	@Wire
+	private Selectbox fontSizeBox;
 
 	@Wire 
 	private Popup contextMenu;
@@ -91,20 +90,21 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
 		ConsoleHandler handler = new ConsoleHandler();
 		handler.setFormatter(new SimpleFormatter());
 		handler.setLevel(Level.ALL);
-		log.addHandler(handler);
+//		log.addHandler(handler);
 	}
 	
 	public void doAfterCompose(Component comp) throws Exception {
 		super.doAfterCompose(comp);
 		initControlArea();
+		//enable server push to update UI according to keikai async response 
 		comp.getDesktop().enableServerPush(true);
 		initSpreadsheet();
 		addEventListener();
 		initCellData();
-		
 	}
 
 	private void initCellData() {
+		/*
 		spreadsheet.ready(() -> {
 			long t1 = System.nanoTime();
 			int total = 0;
@@ -121,6 +121,21 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
 					+ TimeUnit.MILLISECONDS.convert(System.nanoTime() - t1, TimeUnit.NANOSECONDS) + "ms"
 					+ " for "+total+" cells");
 		});
+		*/
+		//FIXME handle the exception thrown by importTemplate()
+		spreadsheet.ready()
+		.thenAccept((e) -> {
+			System.out.println(e);
+		})
+		.exceptionally((ex) -> {
+			System.out.println("We have a problem: " + ex.getMessage());
+			return null;
+		});
+	}
+
+	private void importTemplate() throws IOException {
+		File template = new File(WebApps.getCurrent().getRealPath("/book/template.xlsx"));
+		spreadsheet.imports("template.xlsx", template);
 	}
 
 	/**
@@ -132,7 +147,9 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
 			RangeSelectEvent event = (RangeSelectEvent) e;
 			selectedRange = event.getActiveSelection().getA1Notation(); //get cell reference string
 			// get value first.
-			event.getRange().loadValue().thenApply(activate()).thenAccept((rangeValue) -> {
+			event.getRange().loadValue()
+			.thenApply(activate())
+			.thenAccept((rangeValue) -> {
 				// ignore validation on null value
 				cellValueBox.setRawValue(rangeValue.getValue());
 				CellValue cellValue = rangeValue.getCellValue();
@@ -141,7 +158,8 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
 						", text: " + cellValue.getStringValue() +
 						", format: " + cellValue.getFormat() +
 						", date: " + cellValue.getDateValue() + "]");
-			}).whenComplete(deactivate());
+			})
+			.whenComplete(deactivate());
 
 			//update control area with server push, since this code is run in a separate thread
 			try { 
@@ -216,21 +234,90 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
 		((Selectable)borderIndexBox.getModel()).addToSelection(Configuration.borderIndexList[3]);
 		
 		borderLineStyleBox.setModel(new ListModelArray<Object>(Configuration.borderLineStyleList));
-		((Selectable)borderLineStyleBox.getModel()).addToSelection(Configuration.borderLineStyleList[0]);
-		borderLineStyleBox.addEventListener("onSelect", (evt) -> {
-			((Selectable)borderWeightBox.getModel()).clearSelection();
-		});
-
-		borderWeightBox.setModel(new ListModelArray<Object>(Configuration.borderWeightList));
-		borderWeightBox.addEventListener("onSelect", (evt) -> {
-			((Selectable)borderLineStyleBox.getModel()).clearSelection();
-		});
+		((Selectable)borderLineStyleBox.getModel()).addToSelection(Configuration.borderLineStyleList[1]);
 		
 		filterOperator.setModel(new ListModelArray<Object>(Configuration.autoFilterList));
 		((Selectable) filterOperator.getModel()).addToSelection(Configuration.autoFilterList[7]);
+		
+		fontSizeBox.setModel(new ListModelArray<String>(Configuration.fontSizes));
+		((Selectable) fontSizeBox.getModel()).addToSelection("12");
 	}
 
-	@Listen("onClick = #enter")
+	@Listen("onClick = toolbarbutton[iconSclass='z-icon-upload']")
+	public void openDialog(){
+		Fileupload.get(-1);
+	}
+	
+	@Listen("onUpload = #root")
+	public void upload(UploadEvent e) throws IOException {
+		String name = e.getMedia().getName();
+		spreadsheet.imports(name, e.getMedia().getStreamData());
+	}	
+	
+	@Listen("onUpload = #uploader")
+	public void uploadFile(UploadEvent event) throws IOException {
+		String name = event.getMedia().getName();
+		spreadsheet.imports(name, event.getMedia().getStreamData());
+	}
+
+	
+	@Listen("onClick = toolbarbutton[iconSclass='z-icon-bold']")
+	public void makeBold(){
+		Range range = spreadsheet.getRange(selectedRange);
+		CellStyle cellStyle = range.createCellStyle();
+		Font font = cellStyle.createFont();
+		font.setBold(true);
+		cellStyle.setFont(font);
+		range.applyCellStyle(cellStyle);
+		
+		/* debug
+		CompletableFuture<List<RangeValue>> values = range.loadValues();
+		values.thenAccept((vals) -> {
+			for (RangeValue v : vals) {
+				CellValue cellValue = v.getCellValue();
+				System.out.print(v);
+				System.out.println(" [formula: " + cellValue.getFormula() +
+						", number: " + cellValue.getDoubleValue() +
+						", text: " + cellValue.getStringValue() +
+						", format: " + cellValue.getFormat() + "]");
+			}
+		});
+		 */
+	}
+	
+	@Listen("onClick = toolbarbutton[iconSclass='z-icon-italic']")
+	public void makeItalic(){
+		Range range = spreadsheet.getRange(selectedRange);
+		CellStyle cellStyle = range.createCellStyle();
+		Font font = cellStyle.createFont();
+		font.setItalic(true);
+		cellStyle.setFont(font);
+		range.applyCellStyle(cellStyle);
+	}	
+	
+	@Listen("onClick = toolbarbutton[iconSclass='z-icon-underline']")
+	public void makeUnderline(){
+		Range range = spreadsheet.getRange(selectedRange);
+		CellStyle cellStyle = range.createCellStyle();
+		Font font = cellStyle.createFont();
+		font.setUnderline("single");;
+		cellStyle.setFont(font);
+		range.applyCellStyle(cellStyle);
+	}	
+	
+	@Listen("onSelect = #fontSizeBox")
+	public void changeFontSize(){
+		Range range = spreadsheet.getRange(selectedRange);
+		CellStyle cellStyle = range.createCellStyle();
+		Font font = cellStyle.createFont();
+		String fontSize = ((Selectable<String>)fontSizeBox.getModel()).getSelection().iterator().next();
+		font.setSize(Integer.valueOf(fontSize));
+		cellStyle.setFont(font);
+		range.applyCellStyle(cellStyle);
+	}	
+	
+	
+	@Listen("onChange = #cellValue")
 	public void onClick(Event event) {
 		String cellReference = ((Label) getSelf().getFellow("cell")).getValue();
 		String cellValue = ((Textbox) event.getTarget().getFellow("cellValue")).getValue();
@@ -259,36 +346,29 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
 		spreadsheet.getRange(selectedRange).clearContents();
 	}
 
-	@Listen("onUpload = #uploader")
-	public void uploadFile(UploadEvent event) throws IOException {
-		String name = event.getMedia().getName();
-		spreadsheet.imports(name, event.getMedia().getStreamData());
-	}
-	//FIXME has bug
+
 	@Listen("onClick = #applyBorder")
 	public void applyBorders(Event evt) {
+		Range range = spreadsheet.getRange(selectedRange);
 		String borderIndex = (String) borderIndexBox.getModel().getElementAt(borderIndexBox.getSelectedIndex());
+		Borders borders = range.createBorders("none".equals(borderIndex) ? null : borderIndex);
+
 		String borderLineStyle = borderLineStyleBox.getSelectedIndex() > -1
 				? (String) borderLineStyleBox.getModel().getElementAt(borderLineStyleBox.getSelectedIndex()) : null;
-		String borderWeight = borderWeightBox.getSelectedIndex() > -1
-				? (String) borderWeightBox.getModel().getElementAt(borderWeightBox.getSelectedIndex()) : null;
-		String color = ((Textbox) evt.getTarget().getFellow("borderColor")).getText();
-		Range range = spreadsheet.getRange(selectedRange);
-		Borders borders = range.createBorders("none".equals(borderIndex) ? null : borderIndex);
-		if (borderLineStyle != null) {
-			borders.setStyle(borderLineStyle);
-		}
-		if (borderWeight != null) {
-			borders.setStyle(borderWeight);
-		}
-		borders.setColor(color);
+		borders.setStyle(borderLineStyle);
+		
+		borders.setColor(borderColorBox.getValue());
+		
 		range.applyBorders(borders);
+		
+		//debug 
 		range.loadCellStyle()
 			.thenAccept((cellStyle -> {
 				System.out.println(cellStyle.getBorders().toString());
 			}));
 	}
 
+	//FIXME has bug
 	@Listen("onClick = #clearBorder")
 	public void clearBorders(Event evt) {
 		spreadsheet.getRange(selectedRange).clearBorders();
@@ -303,22 +383,15 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
 	public void applyFilter(Event evt) {
 		Integer field = filterField.getValue();
 		String fcStr1 = filterCriteria1.getText();
-		String fcStr2 = filterCriteria2.getText();
 		Object criterial1 = null;
-		Object criterial2 = null;
 		if (fcStr1 != null && fcStr1.contains(",")) {
 			criterial1 = fcStr1.split(",");
 		} else {
 			criterial1 = fcStr1.isEmpty() ? null : fcStr1;
 		}
-		if (fcStr2 != null && fcStr2.contains(",")) {
-			criterial2 = fcStr2.split(",");
-		} else {
-			criterial2 = fcStr2.isEmpty() ? null : fcStr2;
-		}
 
 		spreadsheet.getRange(selectedRange).applyAutoFilter(field, criterial1,
-				Configuration.autoFilterList[filterOperator.getSelectedIndex()], criterial2, filterDropDown.getSelectedIndex() == 0);
+				Configuration.autoFilterList[filterOperator.getSelectedIndex()], null, true);
 	}
 
 	@Listen("onClick=#addMore")
@@ -342,30 +415,25 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
 		});
 	}
 
-	@Listen("onClick = #applyFont")
-	public void applyFont() {
-		Range range = spreadsheet.getRange(selectedRange);
-		CellStyle cellStyle = range.createCellStyle();
-		Font font = cellStyle.createFont();
-		font.setBold(true);
-		font.setName("Calibri");
-		cellStyle.setFont(font);
-		range.applyCellStyle(cellStyle);
 
-		/*
-		CompletableFuture<List<RangeValue>> values = range.loadValues();
-		values.thenAccept((vals) -> {
-			for (RangeValue v : vals) {
-				CellValue cellValue = v.getCellValue();
-				System.out.print(v);
-				System.out.println(" [formula: " + cellValue.getFormula() +
-						", number: " + cellValue.getDoubleValue() +
-						", text: " + cellValue.getStringValue() +
-						", format: " + cellValue.getFormat() + "]");
-			}
-		});
-		*/
-	}
+
+	
+//	@Listen("onClick = #exporter")
+//	public void export() throws FileNotFoundException {
+//		ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+//		spreadsheet.export(spreadsheet.getActiveWorkbook(), outputStream).whenComplete((a, b) -> {
+//			try {
+//				Executions.activate(getSelf().getDesktop());
+//				Filedownload.save(outputStream.toByteArray(), "application/excel", spreadsheet.getActiveWorkbook());
+//			} catch (InterruptedException e) {
+//				e.printStackTrace();
+//			} finally {
+//
+//				Executions.deactivate(getSelf().getDesktop());
+//			}
+//		});
+//
+//	}	
 
 	@Listen("onClick = #applyFormat")
 	public void applyFormat(Event evt) {
