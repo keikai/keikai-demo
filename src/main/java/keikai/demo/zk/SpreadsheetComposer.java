@@ -13,13 +13,15 @@ package keikai.demo.zk;
 
 import static com.keikai.util.Converter.numToAbc;
 
+
 import java.io.*;
 import java.util.function.*;
 import java.util.logging.*;
 
+
 import keikai.demo.Configuration;
 
-import org.zkoss.util.media.Media;
+
 import org.zkoss.zhtml.Script;
 import org.zkoss.zk.ui.*;
 import org.zkoss.zk.ui.event.*;
@@ -29,6 +31,7 @@ import org.zkoss.zk.ui.util.Clients;
 import org.zkoss.zkex.zul.Colorbox;
 import org.zkoss.zul.*;
 import org.zkoss.zul.ext.Selectable;
+
 
 import com.keikai.client.api.*;
 import com.keikai.client.api.event.*;
@@ -122,13 +125,16 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
 					+ " for "+total+" cells");
 		});
 		*/
-		//FIXME handle the exception thrown by importTemplate()
 		spreadsheet.ready()
-		.thenAccept((e) -> {
-			System.out.println(e);
-		})
+//		.thenRun(() -> {
+//			try {
+//				importTemplate();
+//			} catch (Exception e) {
+//				throw new RuntimeException(e);
+//			}
+//		})
 		.exceptionally((ex) -> {
-			System.out.println("We have a problem: " + ex.getMessage());
+			System.out.println("Spreadsheet encounters an error: " + ex.getMessage());
 			return null;
 		});
 	}
@@ -260,16 +266,30 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
 		spreadsheet.imports(name, event.getMedia().getStreamData());
 	}
 
+	@Listen("onClick = toolbarbutton[iconSclass='z-icon-file-excel-o']")
+	public void export() throws FileNotFoundException {
+		ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+		spreadsheet.export(spreadsheet.getActiveWorkbook(), outputStream).whenComplete((a, b) -> {
+			try {
+				Executions.activate(getSelf().getDesktop());
+				Filedownload.save(outputStream.toByteArray(), "application/excel", spreadsheet.getActiveWorkbook());
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			} finally {
+
+				Executions.deactivate(getSelf().getDesktop());
+			}
+		});
+
+	}		
 	
 	@Listen("onClick = toolbarbutton[iconSclass='z-icon-bold']")
 	public void makeBold(){
 		Range range = spreadsheet.getRange(selectedRange);
-		CellStyle cellStyle = range.createCellStyle();
-		Font font = cellStyle.createFont();
-		font.setBold(true);
-		cellStyle.setFont(font);
-		range.applyCellStyle(cellStyle);
-		
+		range.loadCellStyle().thenAccept((style) ->{
+			style.getFont().setBold(true);
+			range.applyCellStyle(style);
+		});
 		/* debug
 		CompletableFuture<List<RangeValue>> values = range.loadValues();
 		values.thenAccept((vals) -> {
@@ -288,32 +308,30 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
 	@Listen("onClick = toolbarbutton[iconSclass='z-icon-italic']")
 	public void makeItalic(){
 		Range range = spreadsheet.getRange(selectedRange);
-		CellStyle cellStyle = range.createCellStyle();
-		Font font = cellStyle.createFont();
-		font.setItalic(true);
-		cellStyle.setFont(font);
-		range.applyCellStyle(cellStyle);
+		range.loadCellStyle().thenAccept((style) ->{
+			style.getFont().setItalic(true);
+			range.applyCellStyle(style);
+		});
 	}	
 	
 	@Listen("onClick = toolbarbutton[iconSclass='z-icon-underline']")
 	public void makeUnderline(){
 		Range range = spreadsheet.getRange(selectedRange);
-		CellStyle cellStyle = range.createCellStyle();
-		Font font = cellStyle.createFont();
-		font.setUnderline("single");;
-		cellStyle.setFont(font);
-		range.applyCellStyle(cellStyle);
+		range.loadCellStyle().thenAccept((style) ->{
+			style.getFont().setUnderline("single");;
+			range.applyCellStyle(style);
+			
+		});
 	}	
 	
 	@Listen("onSelect = #fontSizeBox")
 	public void changeFontSize(){
 		Range range = spreadsheet.getRange(selectedRange);
-		CellStyle cellStyle = range.createCellStyle();
-		Font font = cellStyle.createFont();
 		String fontSize = ((Selectable<String>)fontSizeBox.getModel()).getSelection().iterator().next();
-		font.setSize(Integer.valueOf(fontSize));
-		cellStyle.setFont(font);
-		range.applyCellStyle(cellStyle);
+		range.loadCellStyle().thenAccept((style) ->{
+			style.getFont().setSize(Integer.valueOf(fontSize));			
+			range.applyCellStyle(style);
+		});
 	}	
 	
 	
@@ -414,26 +432,6 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
 			}
 		});
 	}
-
-
-
-	
-//	@Listen("onClick = #exporter")
-//	public void export() throws FileNotFoundException {
-//		ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-//		spreadsheet.export(spreadsheet.getActiveWorkbook(), outputStream).whenComplete((a, b) -> {
-//			try {
-//				Executions.activate(getSelf().getDesktop());
-//				Filedownload.save(outputStream.toByteArray(), "application/excel", spreadsheet.getActiveWorkbook());
-//			} catch (InterruptedException e) {
-//				e.printStackTrace();
-//			} finally {
-//
-//				Executions.deactivate(getSelf().getDesktop());
-//			}
-//		});
-//
-//	}	
 
 	@Listen("onClick = #applyFormat")
 	public void applyFormat(Event evt) {

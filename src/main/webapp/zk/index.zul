@@ -6,6 +6,7 @@
     	</menubar>
    		<toolbar>
    			<toolbarbutton iconSclass="z-icon-upload" />
+   			<toolbarbutton iconSclass="z-icon-file-excel-o" />
    			<selectbox id="fontSizeBox" />
    			<toolbarbutton iconSclass="z-icon-bold" />
    			<toolbarbutton iconSclass="z-icon-italic" />
