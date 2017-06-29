@@ -13,14 +13,11 @@ package keikai.demo.zk;
 
 import static com.keikai.util.Converter.numToAbc;
 
-
 import java.io.*;
 import java.util.function.*;
 import java.util.logging.*;
 
-
 import keikai.demo.Configuration;
-
 
 import org.zkoss.zhtml.Script;
 import org.zkoss.zk.ui.*;
@@ -32,8 +29,8 @@ import org.zkoss.zkex.zul.Colorbox;
 import org.zkoss.zul.*;
 import org.zkoss.zul.ext.Selectable;
 
-
 import com.keikai.client.api.*;
+import com.keikai.client.api.Fill.PatternFill;
 import com.keikai.client.api.event.*;
 import com.keikai.client.api.event.Events;
 
@@ -60,8 +57,6 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
 	@Wire
 	private Textbox filterCriteria1;
 	@Wire
-	private Textbox filterCriteria2;
-	@Wire
 	private Radiogroup filterDropDown;
 	@Wire
 	private Button filterBtn;
@@ -81,6 +76,8 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
 	private Popup contextMenu;
 	@Wire 
 	private Label contextMsg;
+	@Wire
+	private Selectbox fillPatternBox;
 
 
 	private int dataRowIndex = 0;
@@ -93,7 +90,7 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
 		ConsoleHandler handler = new ConsoleHandler();
 		handler.setFormatter(new SimpleFormatter());
 		handler.setLevel(Level.ALL);
-//		log.addHandler(handler);
+		log.addHandler(handler);
 	}
 	
 	public void doAfterCompose(Component comp) throws Exception {
@@ -247,6 +244,9 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
 		
 		fontSizeBox.setModel(new ListModelArray<String>(Configuration.fontSizes));
 		((Selectable) fontSizeBox.getModel()).addToSelection("12");
+		
+		fillPatternBox.setModel(new ListModelArray<Object>(Configuration.fillPatternTypes));
+		((Selectable<String>)fillPatternBox.getModel()).addToSelection(Configuration.fillPatternTypes[1]);
 	}
 
 	@Listen("onClick = toolbarbutton[iconSclass='z-icon-upload']")
@@ -282,15 +282,18 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
 		});
 
 	}		
-	
+	//FIXME how to change the style?
 	@Listen("onClick = toolbarbutton[iconSclass='z-icon-bold']")
 	public void makeBold(){
 		Range range = spreadsheet.getRange(selectedRange);
+		Font font = range.createFont();
+		font.setBold(true);
+		range.applyFont(font); 
+		/* debug
 		range.loadCellStyle().thenAccept((style) ->{
 			style.getFont().setBold(true);
 			range.applyCellStyle(style);
 		});
-		/* debug
 		CompletableFuture<List<RangeValue>> values = range.loadValues();
 		values.thenAccept((vals) -> {
 			for (RangeValue v : vals) {
@@ -304,42 +307,54 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
 		});
 		 */
 	}
-	
+	//FIXME
 	@Listen("onClick = toolbarbutton[iconSclass='z-icon-italic']")
 	public void makeItalic(){
 		Range range = spreadsheet.getRange(selectedRange);
-		range.loadCellStyle().thenAccept((style) ->{
-			style.getFont().setItalic(true);
-			range.applyCellStyle(style);
-		});
+		Font font = range.createFont();
+		font.setItalic(true);
+		range.applyFont(font);
 	}	
 	
+	//FIXME
 	@Listen("onClick = toolbarbutton[iconSclass='z-icon-underline']")
 	public void makeUnderline(){
 		Range range = spreadsheet.getRange(selectedRange);
-		range.loadCellStyle().thenAccept((style) ->{
-			style.getFont().setUnderline("single");;
-			range.applyCellStyle(style);
-			
-		});
+		Font font = range.createFont();
+		font.setUnderline("single");;
+		range.applyFont(font);
 	}	
 	
+	//FIXME
 	@Listen("onSelect = #fontSizeBox")
 	public void changeFontSize(){
 		Range range = spreadsheet.getRange(selectedRange);
 		String fontSize = ((Selectable<String>)fontSizeBox.getModel()).getSelection().iterator().next();
+		Font font = range.createFont();
+		font.setSize(Integer.valueOf(fontSize));
+		range.applyFont(font);
+		/*
 		range.loadCellStyle().thenAccept((style) ->{
 			style.getFont().setSize(Integer.valueOf(fontSize));			
 			range.applyCellStyle(style);
 		});
+		*/
 	}	
 	
+	@Listen("onSelect = #fillPatternBox")
+	public void changeFillPattern(){
+		Range range = spreadsheet.getRange(selectedRange);
+		PatternFill fill = range.createPatternFill();
+		fill.setPatternType(((Selectable<String>)fillPatternBox.getModel()).getSelection().iterator().next());
+		fill.setForegroundColor("#363636");
+		fill.setBackgroundColor("#363636");
+		range.applyFill(fill);
+	}
 	
 	@Listen("onChange = #cellValue")
 	public void onClick(Event event) {
 		String cellReference = ((Label) getSelf().getFellow("cell")).getValue();
-		String cellValue = ((Textbox) event.getTarget().getFellow("cellValue")).getValue();
-		spreadsheet.getRange(cellReference).applyValue(cellValue);
+		spreadsheet.getRange(cellReference).applyValue(cellValueBox.getValue());
 	}
 	
 	@Listen("onClick = #clearContents")

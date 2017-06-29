@@ -20,6 +20,7 @@
    			<toolbarbutton id="clearContents" iconSclass="z-icon-eraser" />
    			<toolbarbutton iconSclass="z-icon-usd"  popup="formatPopup"/>
    			<toolbarbutton label="wrap"/>
+   			<selectbox id="fillPatternBox" />
    		</toolbar>
    		<hlayout spacing="50px" style="border: 3px solid skyblue;">
         	<hlayout >
