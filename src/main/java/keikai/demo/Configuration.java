@@ -12,4 +12,5 @@ public class Configuration {
 	public static String[] borderWeightList = { "hairline", "medium", "thick", "thin" };
 	public static String[] underlineStyles = {"none", "single", "double", "singleAccounting", "doubleAccounting"};
 	public static String[] fontSizes = {"6","8", "10", "12", "14", "16", "18", "22","36","72"};
+	public static String[] fillPatternTypes = {"none","solid","mediumGray","darkGray","lightGray","darkHorizontal","darkVertical","darkDown","darkUp","darkGrid","darkTrellis","lightHorizontal","lightVertical","lightDown","lightUp","lightGrid","lightTrellis","gray12","gray0625"};
 }
