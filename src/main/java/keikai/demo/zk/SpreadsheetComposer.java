@@ -35,9 +35,11 @@ import com.keikai.client.api.event.*;
 import com.keikai.client.api.event.Events;
 
 /**
+ * import, export, listen events, change styles, insert data,
  * @author Hawk
  */
 public class SpreadsheetComposer extends SelectorComposer<Component> {
+	private static final int MAX_COLUMN = 10; //the max column to insert data
 	private Spreadsheet spreadsheet;
 	private String selectedRange = "A1"; //cell reference
 
@@ -80,12 +82,12 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
 	private Selectbox fillPatternBox;
 
 
-	private int dataRowIndex = 0;
+	private int currentDataRowIndex = 0; //current row index to insert data
 
-	static {
-		// Debug socket.io
+
+	void enableSocketIOLog() {
 		Logger log = java.util.logging.Logger.getLogger("");
-		log.setLevel(Level.WARNING);
+		log.setLevel(Level.FINER);
 
 		ConsoleHandler handler = new ConsoleHandler();
 		handler.setFormatter(new SimpleFormatter());
@@ -93,35 +95,20 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
 		log.addHandler(handler);
 	}
 	
-	public void doAfterCompose(Component comp) throws Exception {
-		super.doAfterCompose(comp);
+	
+	@Override
+	public void doAfterCompose(Component root) throws Exception {
+		super.doAfterCompose(root);
+//		enableSocketIOLog();
+		initSpreadsheet();
 		initControlArea();
 		//enable server push to update UI according to keikai async response 
-		comp.getDesktop().enableServerPush(true);
-		initSpreadsheet();
+		root.getDesktop().enableServerPush(true);
 		addEventListener();
 		initCellData();
 	}
 
 	private void initCellData() {
-		/*
-		spreadsheet.ready(() -> {
-			long t1 = System.nanoTime();
-			int total = 0;
-			for (int k = 0; k < 1; k++) {
-				for (int row = 0; row < 30; row++) {
-					for (int col = 0; col < 10; col++) {
-						total++;
-						spreadsheet.getRange(row, col).applyValue(numToAbc(col) + (dataRowIndex + 1));
-					}
-					dataRowIndex++;
-				}
-			}
-			System.out.println("Sending time: "
-					+ TimeUnit.MILLISECONDS.convert(System.nanoTime() - t1, TimeUnit.NANOSECONDS) + "ms"
-					+ " for "+total+" cells");
-		});
-		*/
 		spreadsheet.ready()
 //		.thenRun(() -> {
 //			try {
@@ -134,6 +121,18 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
 			System.out.println("Spreadsheet encounters an error: " + ex.getMessage());
 			return null;
 		});
+		initializeMassiveCells();
+	}
+
+	/**
+	 * demonstrate the way to import massive data
+	 */
+	private void initializeMassiveCells() {
+		spreadsheet.ready()
+		.thenRun(() -> insertDataByRow(200));
+		spreadsheet.ready()
+		.thenRun(() -> insertDataByRow(200));
+		// add more statements of spreadsheet.ready().thenRun()
 	}
 
 	private void importTemplate() throws IOException {
@@ -154,7 +153,11 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
 			.thenApply(activate())
 			.thenAccept((rangeValue) -> {
 				// ignore validation on null value
-				cellValueBox.setRawValue(rangeValue.getValue());
+				if (rangeValue.getCellValue().isFormula()){
+					cellValueBox.setRawValue(rangeValue.getCellValue().getFormula());
+				}else{
+					cellValueBox.setRawValue(rangeValue.getValue());
+				}
 				CellValue cellValue = rangeValue.getCellValue();
 				cellInfo.setValue(" [formula: " + cellValue.getFormula() +
 						", number: " + cellValue.getDoubleValue() +
@@ -168,14 +171,14 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
 			try { 
 				Executions.activate(desktop);
 				((Label) getSelf().getFellow("msg")).setValue(event.toString());
-				String a1 = event.getRange().getA1Notation();
-				String[] refs = a1.split(":");
-				a1 = refs.length > 1 ? refs[0].equals(refs[1]) ? refs[0] : a1 : a1;
+				String cellAddress = event.getRange().getA1Notation();
+				String[] refs = cellAddress.split(":");
+				cellAddress = refs.length > 1 ? refs[0].equals(refs[1]) ? refs[0] : cellAddress : cellAddress;
 
 				Label label = ((Label) getSelf().getFellow("cell"));
 
-				if (!label.getValue().equals(a1)) {
-					label.setValue(a1);
+				if (!label.getValue().equals(cellAddress)) {
+					label.setValue(cellAddress);
 
 				}
 			} finally {
@@ -232,18 +235,19 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
 		initalScript.setPage(getPage());
 	}
 
+	@SuppressWarnings("unchecked")
 	private void initControlArea() {
 		borderIndexBox.setModel(new ListModelArray<Object>(Configuration.borderIndexList));
-		((Selectable)borderIndexBox.getModel()).addToSelection(Configuration.borderIndexList[3]);
+		((Selectable<String>)borderIndexBox.getModel()).addToSelection(Configuration.borderIndexList[3]);
 		
 		borderLineStyleBox.setModel(new ListModelArray<Object>(Configuration.borderLineStyleList));
-		((Selectable)borderLineStyleBox.getModel()).addToSelection(Configuration.borderLineStyleList[1]);
+		((Selectable<String>)borderLineStyleBox.getModel()).addToSelection(Configuration.borderLineStyleList[1]);
 		
 		filterOperator.setModel(new ListModelArray<Object>(Configuration.autoFilterList));
-		((Selectable) filterOperator.getModel()).addToSelection(Configuration.autoFilterList[7]);
+		((Selectable<String>) filterOperator.getModel()).addToSelection(Configuration.autoFilterList[7]);
 		
 		fontSizeBox.setModel(new ListModelArray<String>(Configuration.fontSizes));
-		((Selectable) fontSizeBox.getModel()).addToSelection("12");
+		((Selectable<String>) fontSizeBox.getModel()).addToSelection("12");
 		
 		fillPatternBox.setModel(new ListModelArray<Object>(Configuration.fillPatternTypes));
 		((Selectable<String>)fillPatternBox.getModel()).addToSelection(Configuration.fillPatternTypes[1]);
@@ -282,7 +286,6 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
 		});
 
 	}		
-	//FIXME how to change the style?
 	@Listen("onClick = toolbarbutton[iconSclass='z-icon-bold']")
 	public void makeBold(){
 		Range range = spreadsheet.getRange(selectedRange);
@@ -307,7 +310,7 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
 		});
 		 */
 	}
-	//FIXME
+
 	@Listen("onClick = toolbarbutton[iconSclass='z-icon-italic']")
 	public void makeItalic(){
 		Range range = spreadsheet.getRange(selectedRange);
@@ -316,7 +319,6 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
 		range.applyFont(font);
 	}	
 	
-	//FIXME
 	@Listen("onClick = toolbarbutton[iconSclass='z-icon-underline']")
 	public void makeUnderline(){
 		Range range = spreadsheet.getRange(selectedRange);
@@ -325,7 +327,6 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
 		range.applyFont(font);
 	}	
 	
-	//FIXME
 	@Listen("onSelect = #fontSizeBox")
 	public void changeFontSize(){
 		Range range = spreadsheet.getRange(selectedRange);
@@ -407,7 +408,6 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
 			}));
 	}
 
-	//FIXME has bug
 	@Listen("onClick = #clearBorder")
 	public void clearBorders(Event evt) {
 		spreadsheet.getRange(selectedRange).clearBorders();
@@ -436,12 +436,7 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
 	@Listen("onClick=#addMore")
 	public void addMore() {
 		Clients.showBusy("send data...");
-		for (int i = 0; i < 10; i++) {
-			for (int j = 0; j < 100; j++) {
-				spreadsheet.getRange(dataRowIndex, j).applyValue(numToAbc(j) + (dataRowIndex + 1));
-			}
-			dataRowIndex++;
-		}
+		insertDataByRow(100);
 		spreadsheet.ready(() -> {
 			try {
 				Executions.activate(getSelf().getDesktop());
@@ -452,6 +447,15 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
 				Executions.deactivate(getSelf().getDesktop());
 			}
 		});
+	}
+
+	private void insertDataByRow(int row) {
+		for (int j = 0; j < row; j++) {
+			for (int i = 0; i < MAX_COLUMN; i++) {
+				spreadsheet.getRange(currentDataRowIndex, i).applyValue(numToAbc(i) + (currentDataRowIndex + 1));
+			}
+			currentDataRowIndex++;
+		}
 	}
 
 	@Listen("onClick = #applyFormat")
