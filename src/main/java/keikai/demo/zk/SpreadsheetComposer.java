@@ -78,8 +78,6 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
 
 	@Wire 
 	private Popup contextMenu;
-	@Wire 
-	private Label contextMsg;
 	@Wire
 	private Selectbox fillPatternBox;
 	@Wire
@@ -111,7 +109,7 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
 	@Override
 	public void doAfterCompose(Component root) throws Exception {
 		super.doAfterCompose(root);
-		enableSocketIOLog();
+//		enableSocketIOLog();
 		initSpreadsheet();
 		initControlArea();
 		//enable server push to update UI according to keikai async response 
@@ -221,8 +219,6 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
 			CellMouseEvent mouseEvent = (CellMouseEvent) e;
 			try {
 				Executions.activate(desktop);
-				String range = mouseEvent.getRange().getA1Notation();
-				contextMsg.setValue("Cell: " + range);
 				contextMenu.open(mouseEvent.getPageX(), mouseEvent.getPageY());
 			} finally {
 				Executions.deactivate(desktop);
@@ -350,12 +346,12 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
 		*/
 	}	
 	
-	@Listen("onSelect = #fillPatternBox")
-	public void changeFillPattern(){
+	@Listen("onClick = #applyFill")
+	public void changeFillPattern(Event e){
 		PatternFill fill = selectedRange.createPatternFill();
 		fill.setPatternType(((Selectable<String>)fillPatternBox.getModel()).getSelection().iterator().next());
-		fill.setForegroundColor("#363636");
-		fill.setBackgroundColor("#363636");
+		fill.setForegroundColor(((Colorbox)e.getTarget().getFellow("foregroundColorBox")).getValue());
+		fill.setBackgroundColor(((Colorbox)e.getTarget().getFellow("backgroundColorBox")).getValue());
 		selectedRange.applyFill(fill);
 	}
 	
