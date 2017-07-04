@@ -41,7 +41,7 @@ import com.keikai.client.api.event.Events;
 public class SpreadsheetComposer extends SelectorComposer<Component> {
 	private static final int MAX_COLUMN = 10; //the max column to insert data
 	private Spreadsheet spreadsheet;
-	private String selectedRange = "A1"; //cell reference
+	private Range selectedRange; //cell reference
 
 	@Wire
 	private Selectbox borderIndexBox;
@@ -52,6 +52,8 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
 	private Label keyCode;
 
 	// filter
+	@Wire
+	private Popup filterPopup;
 	@Wire
 	private Selectbox filterOperator;
 	@Wire
@@ -80,6 +82,16 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
 	private Label contextMsg;
 	@Wire
 	private Selectbox fillPatternBox;
+	@Wire
+	private Textbox validationFormulaBox;
+	@Wire
+	private Textbox inputTitleBox;
+	@Wire
+	private Textbox inputMsgBox;
+	@Wire
+	private Textbox errorTitleBox;
+	@Wire
+	private Textbox errorMsgBox;
 
 
 	private int currentDataRowIndex = 0; //current row index to insert data
@@ -99,7 +111,7 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
 	@Override
 	public void doAfterCompose(Component root) throws Exception {
 		super.doAfterCompose(root);
-//		enableSocketIOLog();
+		enableSocketIOLog();
 		initSpreadsheet();
 		initControlArea();
 		//enable server push to update UI according to keikai async response 
@@ -110,18 +122,18 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
 
 	private void initCellData() {
 		spreadsheet.ready()
-//		.thenRun(() -> {
-//			try {
-//				importTemplate();
-//			} catch (Exception e) {
-//				throw new RuntimeException(e);
-//			}
-//		})
+		.thenRun(() -> {
+			try {
+				importTemplate();
+			} catch (Exception e) {
+				throw new RuntimeException(e);
+			}
+		})
 		.exceptionally((ex) -> {
 			System.out.println("Spreadsheet encounters an error: " + ex.getMessage());
 			return null;
 		});
-		initializeMassiveCells();
+//		initializeMassiveCells();
 	}
 
 	/**
@@ -136,7 +148,7 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
 	}
 
 	private void importTemplate() throws IOException {
-		File template = new File(WebApps.getCurrent().getRealPath("/book/template.xlsx"));
+		File template = new File(WebApps.getCurrent().getRealPath("/book/validation.xlsx"));
 		spreadsheet.imports("template.xlsx", template);
 	}
 
@@ -147,7 +159,7 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
 		final Desktop desktop = getSelf().getDesktop();
 		ThrowingFunction listener = (e) -> {
 			RangeSelectEvent event = (RangeSelectEvent) e;
-			selectedRange = event.getActiveSelection().getA1Notation(); //get cell reference string
+			selectedRange = event.getActiveSelection();
 			// get value first.
 			event.getRange().loadValue()
 			.thenApply(activate())
@@ -288,10 +300,9 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
 	}		
 	@Listen("onClick = toolbarbutton[iconSclass='z-icon-bold']")
 	public void makeBold(){
-		Range range = spreadsheet.getRange(selectedRange);
-		Font font = range.createFont();
+		Font font = selectedRange.createFont();
 		font.setBold(true);
-		range.applyFont(font); 
+		selectedRange.applyFont(font); 
 		/* debug
 		range.loadCellStyle().thenAccept((style) ->{
 			style.getFont().setBold(true);
@@ -313,27 +324,24 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
 
 	@Listen("onClick = toolbarbutton[iconSclass='z-icon-italic']")
 	public void makeItalic(){
-		Range range = spreadsheet.getRange(selectedRange);
-		Font font = range.createFont();
+		Font font = selectedRange.createFont();
 		font.setItalic(true);
-		range.applyFont(font);
+		selectedRange.applyFont(font);
 	}	
 	
 	@Listen("onClick = toolbarbutton[iconSclass='z-icon-underline']")
 	public void makeUnderline(){
-		Range range = spreadsheet.getRange(selectedRange);
-		Font font = range.createFont();
+		Font font = selectedRange.createFont();
 		font.setUnderline("single");;
-		range.applyFont(font);
+		selectedRange.applyFont(font);
 	}	
 	
 	@Listen("onSelect = #fontSizeBox")
 	public void changeFontSize(){
-		Range range = spreadsheet.getRange(selectedRange);
 		String fontSize = ((Selectable<String>)fontSizeBox.getModel()).getSelection().iterator().next();
-		Font font = range.createFont();
+		Font font = selectedRange.createFont();
 		font.setSize(Integer.valueOf(fontSize));
-		range.applyFont(font);
+		selectedRange.applyFont(font);
 		/*
 		range.loadCellStyle().thenAccept((style) ->{
 			style.getFont().setSize(Integer.valueOf(fontSize));			
@@ -344,12 +352,11 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
 	
 	@Listen("onSelect = #fillPatternBox")
 	public void changeFillPattern(){
-		Range range = spreadsheet.getRange(selectedRange);
-		PatternFill fill = range.createPatternFill();
+		PatternFill fill = selectedRange.createPatternFill();
 		fill.setPatternType(((Selectable<String>)fillPatternBox.getModel()).getSelection().iterator().next());
 		fill.setForegroundColor("#363636");
 		fill.setBackgroundColor("#363636");
-		range.applyFill(fill);
+		selectedRange.applyFill(fill);
 	}
 	
 	@Listen("onChange = #cellValue")
@@ -360,13 +367,12 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
 	
 	@Listen("onClick = #clearContents")
 	public void clearContents(Event event) {
-		spreadsheet.getRange(selectedRange).clearContents();
+		selectedRange.clearContents();
 	}
 	
 	@Listen("onClick = toolbarbutton[label='wrap']")
 	public void wrap(){
-		Range range = spreadsheet.getRange(selectedRange);
-		range.applyWrapText(true);;
+		selectedRange.applyWrapText(true);;
 	}	
 
 	@Listen("onChange = #focusTo")
@@ -389,9 +395,8 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
 
 	@Listen("onClick = #applyBorder")
 	public void applyBorders(Event evt) {
-		Range range = spreadsheet.getRange(selectedRange);
 		String borderIndex = (String) borderIndexBox.getModel().getElementAt(borderIndexBox.getSelectedIndex());
-		Borders borders = range.createBorders("none".equals(borderIndex) ? null : borderIndex);
+		Borders borders = selectedRange.createBorders("none".equals(borderIndex) ? null : borderIndex);
 
 		String borderLineStyle = borderLineStyleBox.getSelectedIndex() > -1
 				? (String) borderLineStyleBox.getModel().getElementAt(borderLineStyleBox.getSelectedIndex()) : null;
@@ -399,10 +404,10 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
 		
 		borders.setColor(borderColorBox.getValue());
 		
-		range.applyBorders(borders);
+		selectedRange.applyBorders(borders);
 		
 		//debug 
-		range.loadCellStyle()
+		selectedRange.loadCellStyle()
 			.thenAccept((cellStyle -> {
 				System.out.println(cellStyle.getBorders().toString());
 			}));
@@ -410,16 +415,16 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
 
 	@Listen("onClick = #clearBorder")
 	public void clearBorders(Event evt) {
-		spreadsheet.getRange(selectedRange).clearBorders();
+		selectedRange.clearBorders();
 	}
 
 	@Listen("onClick = #filterClear")
 	public void clearFilter() {
-		spreadsheet.getRange(selectedRange).clearAutoFilter();
+		selectedRange.clearAutoFilter();
 	}
 
 	@Listen("onClick = #filterBtn")
-	public void applyFilter(Event evt) {
+	public void applyFilter(Event e) {
 		Integer field = filterField.getValue();
 		String fcStr1 = filterCriteria1.getText();
 		Object criterial1 = null;
@@ -429,8 +434,9 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
 			criterial1 = fcStr1.isEmpty() ? null : fcStr1;
 		}
 
-		spreadsheet.getRange(selectedRange).applyAutoFilter(field, criterial1,
+		selectedRange.applyAutoFilter(field, criterial1,
 				Configuration.autoFilterList[filterOperator.getSelectedIndex()], null, true);
+		filterPopup.close();
 	}
 
 	@Listen("onClick=#addMore")
@@ -459,16 +465,22 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
 	}
 
 	@Listen("onClick = #applyFormat")
-	public void applyFormat(Event evt) {
-		Range range = spreadsheet.getRange(selectedRange);
-		range.applyNumberFormat(((Textbox) evt.getTarget().getFellow("numfmt")).getText());
+	public void applyFormat(Event e) {
+		selectedRange.applyNumberFormat(((Textbox) e.getTarget().getFellow("numfmt")).getText());
+		((Popup)e.getTarget().getFellow("formatPopup")).close();
 	}
 
-	@Listen("onClick = #isReady")
-	public void isReady() {
-		spreadsheet.isReady().thenApply(activate()).thenAccept(isReady -> {
-			Clients.showNotification("isReady > " + isReady);
-		}).whenComplete(deactivate());
+	@Listen("onClick = #applyValidation")
+	public void applyValidation(Event e){
+		Validation validation = selectedRange.createValidation();
+		validation.setFormula1(validationFormulaBox.getValue());
+		validation.setType("list"); //currently-supported type
+		validation.setInputTitle(inputTitleBox.getValue());
+		validation.setInputMessage(inputMsgBox.getValue());
+		validation.setErrorTitle(errorTitleBox.getValue());
+		validation.setErrorMessage(errorMsgBox.getValue());
+		selectedRange.applyValidation(validation);
+		((Popup)e.getTarget().getFellow("validationPopup")).close();
 	}
 	
 	private <T> ExceptionableFunction<T, T> activate() {

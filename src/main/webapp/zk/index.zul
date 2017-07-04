@@ -19,6 +19,7 @@
    			<toolbarbutton iconSclass="z-icon-filter" popup="filterPopup"/>
    			<toolbarbutton id="clearContents" iconSclass="z-icon-eraser" />
    			<toolbarbutton iconSclass="z-icon-usd"  popup="formatPopup"/>
+   			<toolbarbutton iconSclass="z-icon-list-alt"  popup="validationPopup"/>
    			<toolbarbutton label="wrap"/>
    			<selectbox id="fillPatternBox" />
    		</toolbar>
@@ -29,7 +30,7 @@
         			:
         			<textbox id="cellValue"/>
         			Selection:
-        			<label id="msg" />
+        			<label id="msg" value="A1"/>
         			FocusTo:
         			<textbox id="focusTo" constraint="no empty" value="A10"/>
         			KeyCode: <label id="keyCode" />
@@ -62,6 +63,21 @@
         			<caption label="Format"/>
         			<textbox id="numfmt" value="0.00"/>
         			<button id="applyFormat" iconSclass="z-icon-check" />
+        		</groupbox>
+        	</popup>
+        	<popup id="validationPopup">
+        		<groupbox>
+        			<caption label="Validation"/>
+        			<vlayout>
+        			type: 
+        			<n:span>list</n:span>
+        			formula: <textbox id="validationFormulaBox" />
+        			input title: <textbox id="inputTitleBox"/>
+        			input message: <textbox id="inputMsgBox"/>
+        			error title: <textbox id="errorTitleBox"/>
+        			error message: <textbox id="errorMsgBox"/>
+        			<button id="applyValidation" iconSclass="z-icon-check" />
+        			</vlayout>
         		</groupbox>
         	</popup>
         </hlayout>
