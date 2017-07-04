@@ -68,6 +68,11 @@
 			<artifactId>javaee-web-api</artifactId>
 			<version>7.0</version>
 		</dependency>
+		<dependency>
+			<groupId>org.eclipse.jetty</groupId>
+			<artifactId>jetty-webapp</artifactId>
+			<version>9.4.6.v20170531</version>
+		</dependency>
 	</dependencies>
 	<build>
 		<finalName>${project.artifactId}</finalName>
