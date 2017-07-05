@@ -468,14 +468,14 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
 
 	@Listen("onClick = #applyValidation")
 	public void applyValidation(Event e){
-		Validation validation = selectedRange.createValidation();
+		DataValidation validation = selectedRange.createDataValidation();
 		validation.setFormula1(validationFormulaBox.getValue());
 		validation.setType("list"); //currently-supported type
 		validation.setInputTitle(inputTitleBox.getValue());
 		validation.setInputMessage(inputMsgBox.getValue());
 		validation.setErrorTitle(errorTitleBox.getValue());
 		validation.setErrorMessage(errorMsgBox.getValue());
-		selectedRange.applyValidation(validation);
+		selectedRange.applyDataValidation(validation);
 		((Popup)e.getTarget().getFellow("validationPopup")).close();
 	}
 	
