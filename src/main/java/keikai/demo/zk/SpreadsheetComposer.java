@@ -241,6 +241,7 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
 		initalScript.setDefer(true);
 		initalScript.setAsync(true);
 		initalScript.setPage(getPage());
+		selectedRange = spreadsheet.getRange("A1");
 	}
 
 	@SuppressWarnings("unchecked")
@@ -471,6 +472,7 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
 		DataValidation validation = selectedRange.createDataValidation();
 		validation.setFormula1(validationFormulaBox.getValue());
 		validation.setType("list"); //currently-supported type
+		validation.setAlertStyle("stop");
 		validation.setInputTitle(inputTitleBox.getValue());
 		validation.setInputMessage(inputMsgBox.getValue());
 		validation.setErrorTitle(errorTitleBox.getValue());

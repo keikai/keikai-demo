@@ -22,7 +22,7 @@ public class DemoFilter implements Filter {
 	public void doFilter(ServletRequest request, ServletResponse response,
 			FilterChain chain) throws IOException, ServletException {
 		initSpreadsheet(request);
-		File template = new File(request.getServletContext().getRealPath("/book/template2.xlsx"));
+		File template = new File(request.getServletContext().getRealPath("/book/template.xlsx"));
 		fillCellData(template);
 		chain.doFilter(request, response);
 	}

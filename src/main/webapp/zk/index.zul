@@ -31,60 +31,65 @@
         			CellInfo:
         			<label id="cellInfo" />
         	</hlayout>
-        	<popup id="borderPopup">
-        		<groupbox>
-	        		<caption label="Border"/>
-		   			<selectbox id="borderIndexBox" />
-		   			<selectbox id="borderLineStyleBox" />
-		   			<colorbox id="borderColorBox" value="#363636" />
-		   			<button id="clearBorder" iconSclass="z-icon-eraser"/>
-		   			<button id="applyBorder" iconSclass="z-icon-check"/>
-	   			</groupbox>
-        	</popup>
-        	<popup id="filterPopup">
-	        	<groupbox>
-	        		<caption label="Auto Filter"/>
-	        		<div>
-	        			Field Index:
-	        			<intbox id="filterField" value="0" />
-	        		</div>
-	        		<div>
-	        			Criteria1:
-	        			<textbox id="filterCriteria1" />
-	        		</div>
-	        		<div>
-	        			Operator:
-	        			<selectbox id="filterOperator" />
-	        		</div>
-	        		<div>
-	        			<button id="filterClear" iconSclass="z-icon-ban" />
-	        			<button id="filterBtn" iconSclass="z-icon-check"/>
-	        		</div>
-	        	</groupbox>
-        	</popup>
-        	<popup id="formatPopup">
-        		<groupbox>
-        			<caption label="Format"/>
-        			<textbox id="numfmt" value="0.00"/>
-        			<button id="applyFormat" iconSclass="z-icon-check" />
-        		</groupbox>
-        	</popup>
-        	<popup id="validationPopup">
-        		<groupbox>
-        			<caption label="Validation"/>
-        			<vlayout>
-        			type: 
-        			<n:span>list</n:span>
-        			formula: <textbox id="validationFormulaBox" />
-        			input title: <textbox id="inputTitleBox"/>
-        			input message: <textbox id="inputMsgBox"/>
-        			error title: <textbox id="errorTitleBox"/>
-        			error message: <textbox id="errorMsgBox"/>
-        			<button id="applyValidation" iconSclass="z-icon-check" />
-        			</vlayout>
-        		</groupbox>
-        	</popup>
-			<popup id="fillPopup">
+        </hlayout>
+        <div id="myss" vflex="1"></div>
+        <menupopup id="contextMenu">
+        	<menuitem label="Fill" popup="fillPopup"/>
+        </menupopup>
+       	<popup id="borderPopup">
+       		<groupbox>
+        		<caption label="Border"/>
+	   			<selectbox id="borderIndexBox" />
+	   			<selectbox id="borderLineStyleBox" />
+	   			<colorbox id="borderColorBox" value="#363636" />
+	   			<button id="clearBorder" iconSclass="z-icon-eraser"/>
+	   			<button id="applyBorder" iconSclass="z-icon-check"/>
+   			</groupbox>
+       	</popup>
+       	<popup id="filterPopup">
+        	<groupbox>
+        		<caption label="Auto Filter"/>
+        		<div>
+        			Field Index:
+        			<intbox id="filterField" value="0" />
+        		</div>
+        		<div>
+        			Criteria1:
+        			<textbox id="filterCriteria1" />
+        		</div>
+        		<div>
+        			Operator:
+        			<selectbox id="filterOperator" />
+        		</div>
+        		<div>
+        			<button id="filterClear" iconSclass="z-icon-ban" />
+        			<button id="filterBtn" iconSclass="z-icon-check"/>
+        		</div>
+        	</groupbox>
+       	</popup>
+       	<popup id="formatPopup">
+       		<groupbox>
+       			<caption label="Format"/>
+       			<textbox id="numfmt" value="0.00"/>
+       			<button id="applyFormat" iconSclass="z-icon-check" />
+       		</groupbox>
+       	</popup>
+       	<popup id="validationPopup">
+       		<groupbox>
+       			<caption label="Validation"/>
+       			<vlayout>
+       			type: 
+       			<n:span>list</n:span>
+       			formula: <textbox id="validationFormulaBox" />
+       			input title: <textbox id="inputTitleBox"/>
+       			input message: <textbox id="inputMsgBox"/>
+       			error title: <textbox id="errorTitleBox"/>
+       			error message: <textbox id="errorMsgBox"/>
+       			<button id="applyValidation" iconSclass="z-icon-check" />
+       			</vlayout>
+       		</groupbox>
+       	</popup>
+		<popup id="fillPopup">
         	<groupbox>
         		<caption label="Fill" />
         		<vlayout>
@@ -97,15 +102,6 @@
         			<button id="applyFill" iconSclass="z-icon-check" />
         		</vlayout>
         	</groupbox>
-        	</popup>
-        </hlayout>
-            <div id="myss" vflex="1"></div>
-        <!-- 
-        <window id="mywin" title="Keikai Spreadsheet" border="normal" vflex="true">
-        </window>
-         -->
-        <menupopup id="contextMenu">
-        	<menuitem label="Fill" popup="fillPopup"/>
-        </menupopup>
+       	</popup>        
     </vlayout>
 </zk>
