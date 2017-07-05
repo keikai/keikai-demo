@@ -234,7 +234,7 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
 	private void initSpreadsheet() {
 		spreadsheet = Keikai.newClient(Configuration.KEIKAI_SERVER); //connect to keikai server
 		//pass target element's id and get keikai script URI
-		String scriptUri = spreadsheet.getURI(getSelf().getFellow("mywin").getFellow("myss").getUuid());
+		String scriptUri = spreadsheet.getURI(getSelf().getFellow("myss").getUuid());
 		//load the initial script to render spreadsheet at the client
 		Script initalScript = new Script();
 		initalScript.setSrc(scriptUri);
