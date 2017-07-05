@@ -1,6 +1,7 @@
 <zk xmlns:x="xhtml" xmlns:n="native">
     <vlayout id="root" vflex="1" apply="keikai.demo.zk.SpreadsheetComposer">
    		<toolbar>
+   			<toolbarbutton iconSclass="z-icon-file" />
    			<toolbarbutton iconSclass="z-icon-upload" />
    			<toolbarbutton iconSclass="z-icon-file-excel-o" />
    			<selectbox id="fontSizeBox" />

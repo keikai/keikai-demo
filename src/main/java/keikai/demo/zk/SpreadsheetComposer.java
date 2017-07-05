@@ -90,22 +90,8 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
 	private Textbox errorTitleBox;
 	@Wire
 	private Textbox errorMsgBox;
-
-
 	private int currentDataRowIndex = 0; //current row index to insert data
 
-
-	void enableSocketIOLog() {
-		Logger log = java.util.logging.Logger.getLogger("");
-		log.setLevel(Level.FINER);
-
-		ConsoleHandler handler = new ConsoleHandler();
-		handler.setFormatter(new SimpleFormatter());
-		handler.setLevel(Level.ALL);
-		log.addHandler(handler);
-	}
-	
-	
 	@Override
 	public void doAfterCompose(Component root) throws Exception {
 		super.doAfterCompose(root);
@@ -120,13 +106,15 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
 
 	private void initCellData() {
 		spreadsheet.ready()
+		/*
 		.thenRun(() -> {
 			try {
-				importTemplate();
+				importFile("template");
 			} catch (Exception e) {
 				throw new RuntimeException(e);
 			}
 		})
+		*/
 		.exceptionally((ex) -> {
 			System.out.println("Spreadsheet encounters an error: " + ex.getMessage());
 			return null;
@@ -145,9 +133,9 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
 		// add more statements of spreadsheet.ready().thenRun()
 	}
 
-	private void importTemplate() throws IOException {
-		File template = new File(WebApps.getCurrent().getRealPath("/book/validation.xlsx"));
-		spreadsheet.imports("template.xlsx", template);
+	private void importFile(String fileName) throws IOException {
+		File template = new File(WebApps.getCurrent().getRealPath("/book/"+fileName+".xlsx"));
+		spreadsheet.imports(fileName+".xlsx", template);
 	}
 
 	/**
@@ -260,6 +248,18 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
 		
 		fillPatternBox.setModel(new ListModelArray<Object>(Configuration.fillPatternTypes));
 		((Selectable<String>)fillPatternBox.getModel()).addToSelection(Configuration.fillPatternTypes[1]);
+	}
+	
+	/**
+	 * TODO implement by creating a new client
+	 */
+	@Listen("onClick = toolbarbutton[iconSclass='z-icon-file']")
+	public void newFile(){
+		try{
+			importFile("blank");
+		}catch(IOException e){
+			Clients.showNotification(e.getMessage());
+		}
 	}
 
 	@Listen("onClick = toolbarbutton[iconSclass='z-icon-upload']")
@@ -480,6 +480,16 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
 		selectedRange.applyDataValidation(validation);
 		((Popup)e.getTarget().getFellow("validationPopup")).close();
 	}
+	
+	private void enableSocketIOLog() {
+		Logger log = java.util.logging.Logger.getLogger("");
+		log.setLevel(Level.FINER);
+
+		ConsoleHandler handler = new ConsoleHandler();
+		handler.setFormatter(new SimpleFormatter());
+		handler.setLevel(Level.ALL);
+		log.addHandler(handler);
+	}	
 	
 	private <T> ExceptionableFunction<T, T> activate() {
 		Desktop desktop = getSelf().getDesktop();
