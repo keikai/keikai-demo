@@ -6,6 +6,8 @@ import javax.servlet.*;
 import javax.servlet.http.HttpServletRequest;
 
 import com.keikai.client.api.*;
+import com.keikai.client.api.Border.Style;
+import com.keikai.client.api.Borders.BorderIndex;
 
 
 //@WebFilter(filterName = "DemoFilter",
@@ -65,8 +67,8 @@ public class DemoFilter implements Filter {
 
 	private void applyBorders() {
 		Range range = spreadsheet.getRange("A1:B10");
-		Borders borders = range.createBorders(Configuration.borderIndexList[3]);
-		borders.setStyle(Configuration.borderLineStyleList[0]);
+		Borders borders = range.createBorders(BorderIndex.EdgeBottom);
+		borders.setStyle(Style.Thin);
 		borders.setColor("#363636");
 		range.applyBorders(borders);
 	}

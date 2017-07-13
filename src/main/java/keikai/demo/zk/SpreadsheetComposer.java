@@ -5,7 +5,7 @@
 	Description:
 		
 	History:
-		4:50 PM 16/05/2017, Created by jumperchen
+		Created by Hawk Chen
 
 Copyright (C) 2017 Potix Corporation. All Rights Reserved.
 */
@@ -19,6 +19,7 @@ import java.util.logging.*;
 
 import keikai.demo.Configuration;
 
+import org.apache.poi.ss.usermodel.AutoFilter;
 import org.zkoss.zhtml.Script;
 import org.zkoss.zk.ui.*;
 import org.zkoss.zk.ui.event.*;
@@ -30,12 +31,16 @@ import org.zkoss.zul.*;
 import org.zkoss.zul.ext.Selectable;
 
 import com.keikai.client.api.*;
+import com.keikai.client.api.Borders.BorderIndex;
 import com.keikai.client.api.Fill.PatternFill;
+import com.keikai.client.api.Fill.PatternFill.PatternType;
+import com.keikai.client.api.Font.Underline;
+import com.keikai.client.api.Range.AutoFilterOperator;
 import com.keikai.client.api.event.*;
 import com.keikai.client.api.event.Events;
 
 /**
- * import, export, listen events, change styles, insert data,
+ * Demonstrate API usage about: import, export, listen events, change styles, insert data,
  * @author Hawk
  */
 public class SpreadsheetComposer extends SelectorComposer<Component> {
@@ -114,7 +119,7 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
 				throw new RuntimeException(e);
 			}
 		})
-		*/
+		 */
 		.exceptionally((ex) -> {
 			System.out.println("Spreadsheet encounters an error: " + ex.getMessage());
 			return null;
@@ -234,20 +239,20 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
 
 	@SuppressWarnings("unchecked")
 	private void initControlArea() {
-		borderIndexBox.setModel(new ListModelArray<Object>(Configuration.borderIndexList));
-		((Selectable<String>)borderIndexBox.getModel()).addToSelection(Configuration.borderIndexList[3]);
+		borderIndexBox.setModel(new ListModelArray<BorderIndex>(BorderIndex.values()));
+		((Selectable<BorderIndex>)borderIndexBox.getModel()).addToSelection(BorderIndex.EdgeBottom);
 		
-		borderLineStyleBox.setModel(new ListModelArray<Object>(Configuration.borderLineStyleList));
-		((Selectable<String>)borderLineStyleBox.getModel()).addToSelection(Configuration.borderLineStyleList[1]);
+		borderLineStyleBox.setModel(new ListModelArray<Border.Style>(Border.Style.values()));
+		((Selectable<Border.Style>)borderLineStyleBox.getModel()).addToSelection(Border.Style.Thin);
 		
-		filterOperator.setModel(new ListModelArray<Object>(Configuration.autoFilterList));
-		((Selectable<String>) filterOperator.getModel()).addToSelection(Configuration.autoFilterList[7]);
+		filterOperator.setModel(new ListModelArray<AutoFilterOperator>(AutoFilterOperator.values()));
+		((Selectable<AutoFilterOperator>) filterOperator.getModel()).addToSelection(AutoFilterOperator.FilterValues);
 		
 		fontSizeBox.setModel(new ListModelArray<String>(Configuration.fontSizes));
 		((Selectable<String>) fontSizeBox.getModel()).addToSelection("12");
 		
-		fillPatternBox.setModel(new ListModelArray<Object>(Configuration.fillPatternTypes));
-		((Selectable<String>)fillPatternBox.getModel()).addToSelection(Configuration.fillPatternTypes[1]);
+		fillPatternBox.setModel(new ListModelArray<PatternType>(PatternType.values()));
+		((Selectable<PatternType>)fillPatternBox.getModel()).addToSelection(PatternType.Solid);
 	}
 	
 	/**
@@ -325,13 +330,13 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
 		font.setItalic(true);
 		selectedRange.applyFont(font);
 	}	
-	
+
 	@Listen("onClick = toolbarbutton[iconSclass='z-icon-underline']")
 	public void makeUnderline(){
 		Font font = selectedRange.createFont();
-		font.setUnderline("single");;
+		font.setUnderline(Underline.Single);;
 		selectedRange.applyFont(font);
-	}	
+	}
 	
 	@Listen("onSelect = #fontSizeBox")
 	public void changeFontSize(){
@@ -350,7 +355,7 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
 	@Listen("onClick = #applyFill")
 	public void changeFillPattern(Event e){
 		PatternFill fill = selectedRange.createPatternFill();
-		fill.setPatternType(((Selectable<String>)fillPatternBox.getModel()).getSelection().iterator().next());
+		fill.setPatternType(((Selectable<PatternType>)fillPatternBox.getModel()).getSelection().iterator().next());
 		fill.setForegroundColor(((Colorbox)e.getTarget().getFellow("foregroundColorBox")).getValue());
 		fill.setBackgroundColor(((Colorbox)e.getTarget().getFellow("backgroundColorBox")).getValue());
 		selectedRange.applyFill(fill);
@@ -392,15 +397,13 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
 
 	@Listen("onClick = #applyBorder")
 	public void applyBorders(Event evt) {
-		String borderIndex = (String) borderIndexBox.getModel().getElementAt(borderIndexBox.getSelectedIndex());
-		Borders borders = selectedRange.createBorders("none".equals(borderIndex) ? null : borderIndex);
+		BorderIndex borderIndex = (BorderIndex) borderIndexBox.getModel().getElementAt(borderIndexBox.getSelectedIndex());
+		Borders borders = selectedRange.createBorders(borderIndex);
 
-		String borderLineStyle = borderLineStyleBox.getSelectedIndex() > -1
-				? (String) borderLineStyleBox.getModel().getElementAt(borderLineStyleBox.getSelectedIndex()) : null;
+		Border.Style borderLineStyle = (Border.Style)borderLineStyleBox.getModel().getElementAt(borderLineStyleBox.getSelectedIndex());
 		borders.setStyle(borderLineStyle);
 		
 		borders.setColor(borderColorBox.getValue());
-		
 		selectedRange.applyBorders(borders);
 		
 		//debug 
@@ -432,7 +435,7 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
 		}
 
 		selectedRange.applyAutoFilter(field, criterial1,
-				Configuration.autoFilterList[filterOperator.getSelectedIndex()], null, true);
+				((Selectable<AutoFilterOperator>)filterOperator.getModel()).getSelection().iterator().next(), null, true);
 		filterPopup.close();
 	}
 
@@ -467,6 +470,7 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
 		((Popup)e.getTarget().getFellow("formatPopup")).close();
 	}
 
+	/*
 	@Listen("onClick = #applyValidation")
 	public void applyValidation(Event e){
 		DataValidation validation = selectedRange.createDataValidation();
@@ -480,6 +484,7 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
 		selectedRange.applyDataValidation(validation);
 		((Popup)e.getTarget().getFellow("validationPopup")).close();
 	}
+	*/
 	
 	private void enableSocketIOLog() {
 		Logger log = java.util.logging.Logger.getLogger("");
