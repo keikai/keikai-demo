@@ -14,6 +14,7 @@ package keikai.demo.zk;
 import static com.keikai.util.Converter.numToAbc;
 
 import java.io.*;
+import java.util.concurrent.ExecutionException;
 import java.util.function.*;
 import java.util.logging.*;
 
@@ -481,6 +482,17 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
 		validation.setErrorMessage(errorMsgBox.getValue());
 		selectedRange.applyDataValidation(validation);
 		((Popup)e.getTarget().getFellow("validationPopup")).close();
+	}
+	
+	/**
+	 * an example of synchronous-style API usage, just calling get().
+	 * @throws ExecutionException 
+	 * @throws InterruptedException 
+	 */
+	@Listen("onClick = #showStyle")
+	public void showCellStyle() throws InterruptedException, ExecutionException{
+		CellStyle style = selectedRange.loadCellStyle().get();
+		Clients.showNotification(style.toString());
 	}
 	
 	private void enableSocketIOLog() {
