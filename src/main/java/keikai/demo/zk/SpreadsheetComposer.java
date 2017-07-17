@@ -19,7 +19,6 @@ import java.util.logging.*;
 
 import keikai.demo.Configuration;
 
-import org.apache.poi.ss.usermodel.AutoFilter;
 import org.zkoss.zhtml.Script;
 import org.zkoss.zk.ui.*;
 import org.zkoss.zk.ui.event.*;
@@ -440,7 +439,7 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
 	}
 
 	@Listen("onClick=#addMore")
-	public void addMore() {
+	public void insertData() {
 		Clients.showBusy("send data...");
 		insertDataByRow(100);
 		spreadsheet.ready(() -> {
@@ -470,13 +469,12 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
 		((Popup)e.getTarget().getFellow("formatPopup")).close();
 	}
 
-	/*
 	@Listen("onClick = #applyValidation")
 	public void applyValidation(Event e){
 		DataValidation validation = selectedRange.createDataValidation();
 		validation.setFormula1(validationFormulaBox.getValue());
-		validation.setType("list"); //currently-supported type
-		validation.setAlertStyle("stop");
+		validation.setType(DataValidation.Type.List); //currently-supported type
+		validation.setAlertStyle(DataValidation.AlertStyle.Stop);
 		validation.setInputTitle(inputTitleBox.getValue());
 		validation.setInputMessage(inputMsgBox.getValue());
 		validation.setErrorTitle(errorTitleBox.getValue());
@@ -484,7 +482,6 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
 		selectedRange.applyDataValidation(validation);
 		((Popup)e.getTarget().getFellow("validationPopup")).close();
 	}
-	*/
 	
 	private void enableSocketIOLog() {
 		Logger log = java.util.logging.Logger.getLogger("");
