@@ -35,7 +35,7 @@ import com.keikai.client.api.Borders.BorderIndex;
 import com.keikai.client.api.Fill.PatternFill;
 import com.keikai.client.api.Fill.PatternFill.PatternType;
 import com.keikai.client.api.Font.Underline;
-import com.keikai.client.api.Range.AutoFilterOperator;
+import com.keikai.client.api.Range.*;
 import com.keikai.client.api.event.*;
 import com.keikai.client.api.event.Events;
 
@@ -148,7 +148,7 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
 	 */
 	private void addEventListener() {
 		final Desktop desktop = getSelf().getDesktop();
-		ThrowingFunction listener = (e) -> {
+		ExceptionalConsumer<RangeEvent> listener = (e) -> {
 			RangeSelectEvent event = (RangeSelectEvent) e;
 			selectedRange = event.getActiveSelection();
 			// get value first.
@@ -193,7 +193,7 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
 		spreadsheet.addEventListener(Events.ON_UPDATE_SELECTION, listener::accept);
 		spreadsheet.addEventListener(Events.ON_MOVE_FOCUS, listener::accept);
 
-		ThrowingFunction keyListener = (e) -> {
+		ExceptionalConsumer<RangeEvent> keyListener = (e) -> {
 			RangeKeyEvent keyEvent = (RangeKeyEvent) e;
 			try {
 				Executions.activate(desktop);
@@ -208,7 +208,7 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
 		};
 		
 		// open a context menu
-		ThrowingFunction mouseListener = (e) -> {
+		ExceptionalConsumer<RangeEvent> mouseListener = (e) -> {
 			CellMouseEvent mouseEvent = (CellMouseEvent) e;
 			try {
 				Executions.activate(desktop);
@@ -256,7 +256,7 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
 	}
 	
 	/**
-	 * TODO implement by creating a new client
+	 * TODO implement by changing client URI after 8.5
 	 */
 	@Listen("onClick = toolbarbutton[iconSclass='z-icon-file']")
 	public void newFile(){
@@ -536,19 +536,19 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
 	}
 	
 	/**
-	 * Since lambda can't throw exception so we need to catch it and throw an unchecked exception
+	 * Since a lambda can't throw exceptions so we need to catch it and throw an unchecked exception
 	 * @author hawk
 	 *
 	 */
-	public interface ThrowingFunction extends Consumer<RangeEvent>{
-		default void accept(RangeEvent event){
+	public interface ExceptionalConsumer<T> extends Consumer<T>{
+		default void accept(T v){
 			try {
-				acceptWithException(event);
+				acceptWithException(v);
 			} catch (Exception e) {
 				throw new RuntimeException("wrapped", e);
 			}
 		}
 
-		void acceptWithException(RangeEvent event) throws Exception;
+		void acceptWithException(T v) throws Exception;
 	}
 }
