@@ -19,6 +19,7 @@ import java.util.function.*;
 import java.util.logging.*;
 
 import keikai.demo.Configuration;
+import keikai.demo.zk.SpreadsheetComposer.ExceptionableFunction;
 
 import org.zkoss.zhtml.Script;
 import org.zkoss.zk.ui.*;
@@ -386,11 +387,14 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
 	@Listen("onClick = #focusCell")
 	public void focusCell(Event event) {
 		spreadsheet.loadActiveCell()
-			.thenApply(activate())
-			.thenAccept((range) -> {
+			.thenAccept(AsyncRender.acceptUpdate((Range range) ->{
+				//implement logic to update ZK components
 				Clients.showNotification("Focus Cell: " + range.getA1Notation());
-			})
-			.whenComplete(deactivate());
+			})).exceptionally((ex) ->{
+				//handle an exception
+				ex.printStackTrace();
+				return null;
+			});
 	}
 
 
@@ -443,16 +447,19 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
 	public void insertData() {
 		Clients.showBusy("send data...");
 		insertDataByRow(100);
-		spreadsheet.ready(() -> {
-			try {
-				Executions.activate(getSelf().getDesktop());
-				Clients.clearBusy();
-			} catch (Exception e) {
-				e.printStackTrace();
-			} finally {
-				Executions.deactivate(getSelf().getDesktop());
-			}
-		});
+//		spreadsheet.ready(() -> {
+//			try {
+//				Executions.activate(getSelf().getDesktop());
+//				Clients.clearBusy();
+//			} catch (Exception e) {
+//				e.printStackTrace();
+//			} finally {
+//				Executions.deactivate(getSelf().getDesktop());
+//			}
+//		});
+		spreadsheet.ready(AsyncRender.runUpdate(() -> {
+			Clients.clearBusy();
+		}));
 	}
 
 	private void insertDataByRow(int row) {
@@ -505,15 +512,7 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
 		log.addHandler(handler);
 	}	
 	
-	private <T> ExceptionableFunction<T, T> activate() {
-		Desktop desktop = getSelf().getDesktop();
-		return result -> {
-			Executions.activate(desktop);
-			return result;
-		};
-	}
-
-	private <T> BiConsumer<T, ? super Throwable> deactivate() {
+	public <T> BiConsumer<T, ? super Throwable> deactivate() {
 		Desktop desktop = getSelf().getDesktop();
 		return (v, ex) -> {
 			if (ex != null) {
@@ -523,18 +522,18 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
 		};
 	}
 
-	public interface ExceptionableFunction<T, R> extends Function<T, R> {
-		default R apply(T val) {
-			try {
-				return applyWithException(val);
-			} catch (Exception e) {
-				throw new RuntimeException("wrapped", e);
-			}
-		}
-
-		R applyWithException(T val) throws Exception;
+	/**
+	 * Returns a function that activate a desktop and handles exceptions
+	 * @return
+	 */
+	public <T> ExceptionableFunction<T, T> activate() {
+		Desktop desktop = getSelf().getDesktop();
+		return result -> {
+			Executions.activate(desktop);
+			return result;
+		};
 	}
-	
+
 	/**
 	 * Since a lambda can't throw exceptions so we need to catch it and throw an unchecked exception
 	 * @author hawk
@@ -550,5 +549,22 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
 		}
 
 		void acceptWithException(T v) throws Exception;
+	}
+
+	/**
+	 * Represents a function that handles checked exception by throwing a runtime exception.
+	 * @param <T> input
+	 * @param <R> result
+	 */
+	public interface ExceptionableFunction<T, R> extends Function<T, R> {
+		default R apply(T val) {
+			try {
+				return applyWithException(val);
+			} catch (Exception e) {
+				throw new RuntimeException(e);
+			}
+		}
+		
+		R applyWithException(T val) throws Exception;
 	}
 }
