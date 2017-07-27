@@ -5,7 +5,7 @@
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <title>keikai demo </title>
-<script async defer src="${jsAPI}"></script>
+<script id="keikai" async defer src="${jsAPI}"></script>
 </head>
 <body>
 <div id="spreadsheet" style="height:800px">

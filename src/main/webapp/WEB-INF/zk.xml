@@ -9,5 +9,7 @@
 		<value>java-client-demo</value>
 	</preference>
 	-->
-	
+<system-config>
+     <id-generator-class>keikai.demo.ComponentIDFirstGenerator</id-generator-class>
+ </system-config>	
 </zk>
