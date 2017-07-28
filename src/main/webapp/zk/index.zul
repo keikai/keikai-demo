@@ -1,6 +1,8 @@
+<?script src="canvasTool.js" ?>
 <zk xmlns:x="xhtml" xmlns:n="native">
-    <vlayout id="root" vflex="1" apply="keikai.demo.zk.SpreadsheetComposer">
+    <vlayout id="root" apply="keikai.demo.zk.SpreadsheetComposer" width="1200px" height="800px">
    		<toolbar>
+   		    <toolbarbutton iconSclass="z-icon-list-alt" popup="filePopup"/>
    			<toolbarbutton iconSclass="z-icon-file" />
    			<toolbarbutton iconSclass="z-icon-upload" />
    			<toolbarbutton iconSclass="z-icon-file-excel-o" />
@@ -38,6 +40,16 @@
         <menupopup id="contextMenu">
         	<menuitem label="Fill" popup="fillPopup"/>
         </menupopup>
+       	<popup id="filePopup">
+            <groupbox width="300px" height="400px">
+                <caption label="File List"/>
+                <listbox id="filelistBox">
+                    <template>
+	                	<listitem label="${each}"></listitem>
+                    </template>
+                </listbox>
+            </groupbox>
+       	</popup>
        	<popup id="borderPopup">
        		<groupbox>
         		<caption label="Border"/>

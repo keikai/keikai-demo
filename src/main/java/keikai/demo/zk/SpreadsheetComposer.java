@@ -53,7 +53,9 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
 	private Selectbox borderIndexBox;
 	@Wire
 	private Selectbox borderLineStyleBox;
-
+	@Wire
+	private Listbox filelistBox;
+	
 	@Wire
 	private Label keyCode;
 
@@ -81,6 +83,8 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
 	private Colorbox borderColorBox;
 	@Wire
 	private Selectbox fontSizeBox;
+	@Wire
+	private Popup filePopup;
 
 	@Wire 
 	private Popup contextMenu;
@@ -97,6 +101,9 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
 	@Wire
 	private Textbox errorMsgBox;
 	private int currentDataRowIndex = 0; //current row index to insert data
+	
+	private ListModelList<String> fileListModel;
+	final private File BOOK_FOLDER = new File(getPage().getDesktop().getWebApp().getRealPath("/book/"));
 
 	@Override
 	public void doAfterCompose(Component root) throws Exception {
@@ -115,7 +122,7 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
 		/*
 		.thenRun(() -> {
 			try {
-				importFile("template");
+				importFile("template.xlsx");
 			} catch (Exception e) {
 				throw new RuntimeException(e);
 			}
@@ -140,8 +147,8 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
 	}
 
 	private void importFile(String fileName) throws IOException {
-		File template = new File(WebApps.getCurrent().getRealPath("/book/"+fileName+".xlsx"));
-		spreadsheet.imports(fileName+".xlsx", template);
+		File template = new File(BOOK_FOLDER, fileName);
+		spreadsheet.imports(fileName, template);
 	}
 
 	/**
@@ -254,15 +261,29 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
 		
 		fillPatternBox.setModel(new ListModelArray<PatternType>(PatternType.values()));
 		((Selectable<PatternType>)fillPatternBox.getModel()).addToSelection(PatternType.Solid);
+
+		fileListModel = new ListModelList(generateBookList());
+		filelistBox.setModel(fileListModel);
 	}
-	
+
+	private String[] generateBookList() {
+		return BOOK_FOLDER.list();
+	}
+
+	@Listen("onSelect = #filelistBox")
+	public void loadServerFile() throws IOException{
+		filePopup.close();
+		String fileName = fileListModel.getSelection().iterator().next();
+		importFile(fileName);
+	}
+
 	/**
 	 * TODO implement by changing client URI after 8.5
 	 */
 	@Listen("onClick = toolbarbutton[iconSclass='z-icon-file']")
 	public void newFile(){
 		try{
-			importFile("blank");
+			importFile("blank.xlsx");
 		}catch(IOException e){
 			Clients.showNotification(e.getMessage());
 		}
