@@ -5,6 +5,8 @@
 	<artifactId>java-client-demo</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<properties>
+		<zk.version>8.0.5</zk.version>
+		<selenium.version>2.53.1</selenium.version>
 		<maven.build.timestamp.format>yyyy-MM-dd</maven.build.timestamp.format>
 		<packname>-${project.version}-FL-${maven.build.timestamp}</packname>
 	</properties>
@@ -50,13 +52,18 @@
         <dependency>
             <groupId>org.zkoss.zk</groupId>
             <artifactId>zhtml</artifactId>
-            <version>8.0.5</version>
+            <version>${zk.version}</version>
         </dependency>
         <dependency>
             <groupId>org.zkoss.zk</groupId>
             <artifactId>zkmax</artifactId>
-            <version>8.0.5</version>
-        </dependency>		
+            <version>${zk.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.zkoss.zk</groupId>
+            <artifactId>zuti</artifactId>
+            <version>${zk.version}</version>
+        </dependency>       
 		<dependency>
 			<groupId>javax.servlet</groupId>
 			<artifactId>javax.servlet-api</artifactId>
@@ -69,9 +76,16 @@
 			<version>7.0</version>
 		</dependency>
 		<dependency>
-			<groupId>org.eclipse.jetty</groupId>
-			<artifactId>jetty-webapp</artifactId>
-			<version>9.4.6.v20170531</version>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>4.12</version>
+			<scope>test</scope>
+		</dependency>		 
+		<dependency>
+			<groupId>org.seleniumhq.selenium</groupId>
+			<artifactId>selenium-java</artifactId>
+			<version>${selenium.version}</version>
+			<scope>test</scope>
 		</dependency>
 	</dependencies>
 	<build>
