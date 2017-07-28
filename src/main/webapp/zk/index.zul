@@ -1,5 +1,5 @@
 <?script src="canvasTool.js" ?>
-<zk xmlns:x="xhtml" xmlns:n="native">
+<zk xmlns:x="xhtml" xmlns:n="native" xmlns:ca="client/attribute">
     <vlayout id="root" apply="keikai.demo.zk.SpreadsheetComposer" width="1200px" height="800px">
    		<toolbar>
    		    <toolbarbutton iconSclass="z-icon-list-alt" popup="filePopup"/>
@@ -36,16 +36,18 @@
         			<label id="cellInfo" />
         	</hlayout>
         </hlayout>
-        <div id="myss" vflex="1"></div>
+        <div id="myss" width="1200px" height="700px"></div>
         <menupopup id="contextMenu">
         	<menuitem label="Fill" popup="fillPopup"/>
         </menupopup>
        	<popup id="filePopup">
             <groupbox width="300px" height="400px">
-                <caption label="File List"/>
+                <caption label="File List" ca:name="caption"/>
                 <listbox id="filelistBox">
-                    <template>
-	                	<listitem label="${each}"></listitem>
+                    <template name="model">
+	                	<listitem >
+	                		<listcell ca:name="${each}" label="${each}"/>
+	                	</listitem>
                     </template>
                 </listbox>
             </groupbox>
