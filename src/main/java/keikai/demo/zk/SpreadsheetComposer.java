@@ -119,15 +119,20 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
 
 	private void initCellData() {
 		spreadsheet.ready()
-		/*
 		.thenRun(() -> {
+		/*
 			try {
 				importFile("template.xlsx");
 			} catch (Exception e) {
 				throw new RuntimeException(e);
 			}
-		})
 		 */
+			/*
+			createValidation();
+			Range range = spreadsheet.getRange("A1");
+			range.applyColumnWidthPx(300);
+			*/
+		})
 		.exceptionally((ex) -> {
 			System.out.println("Spreadsheet encounters an error: " + ex.getMessage());
 			return null;
@@ -159,6 +164,10 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
 		ExceptionalConsumer<RangeEvent> listener = (e) -> {
 			RangeSelectEvent event = (RangeSelectEvent) e;
 			selectedRange = event.getActiveSelection();
+			selectedRange.loadCellStyle()
+					.thenAccept(cellStyle -> {
+						System.out.println(cellStyle.getProtection().isLocked());
+					});
 			// get value first.
 			event.getRange().loadValue()
 			.thenApply(activate())
@@ -237,11 +246,11 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
 		//pass target element's id and get keikai script URI
 		String scriptUri = spreadsheet.getURI(getSelf().getFellow("myss").getUuid());
 		//load the initial script to render spreadsheet at the client
-		Script initalScript = new Script();
-		initalScript.setSrc(scriptUri);
-		initalScript.setDefer(true);
-		initalScript.setAsync(true);
-		initalScript.setPage(getPage());
+		Script initialScript = new Script();
+		initialScript.setSrc(scriptUri);
+		initialScript.setDefer(true);
+		initialScript.setAsync(true);
+		initialScript.setPage(getPage());
 		selectedRange = spreadsheet.getRange("A1");
 	}
 
@@ -309,10 +318,10 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
 	@Listen("onClick = toolbarbutton[iconSclass='z-icon-file-excel-o']")
 	public void export() throws FileNotFoundException {
 		ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-		spreadsheet.export(spreadsheet.getActiveWorkbook(), outputStream).whenComplete((a, b) -> {
+		spreadsheet.export(spreadsheet.getCurrentWorkbook(), outputStream).whenComplete((a, b) -> {
 			try {
 				Executions.activate(getSelf().getDesktop());
-				Filedownload.save(outputStream.toByteArray(), "application/excel", spreadsheet.getActiveWorkbook());
+				Filedownload.save(outputStream.toByteArray(), "application/excel", spreadsheet.getCurrentWorkbook());
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			} finally {
@@ -510,6 +519,20 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
 		validation.setErrorMessage(errorMsgBox.getValue());
 		selectedRange.applyDataValidation(validation);
 		((Popup)e.getTarget().getFellow("validationPopup")).close();
+		createValidation();
+	}
+
+	private void createValidation(){
+		Range range = spreadsheet.getRange("a1");
+		DataValidation validation = range.createDataValidation();
+		validation.setFormula1("a,b,c");
+		validation.setType(DataValidation.Type.List); //currently-supported type
+		validation.setAlertStyle(DataValidation.AlertStyle.Stop);
+		validation.setInputTitle("title");
+		validation.setInputMessage("msg");
+		validation.setErrorTitle("err");
+		validation.setErrorMessage("err msg");
+		range.applyDataValidation(validation);
 	}
 	
 	/**
@@ -521,6 +544,8 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
 	public void showCellStyle() throws InterruptedException, ExecutionException{
 		CellStyle style = selectedRange.loadCellStyle().get();
 		Clients.showNotification(style.toString());
+//		System.out.println(style.getProtection().isLocked());
+
 	}
 	
 	private void enableSocketIOLog() {
