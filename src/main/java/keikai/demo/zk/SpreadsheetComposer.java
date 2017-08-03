@@ -127,11 +127,6 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
 				throw new RuntimeException(e);
 			}
 		 */
-			/*
-			createValidation();
-			Range range = spreadsheet.getRange("A1");
-			range.applyColumnWidthPx(300);
-			*/
 		})
 		.exceptionally((ex) -> {
 			System.out.println("Spreadsheet encounters an error: " + ex.getMessage());
@@ -141,13 +136,14 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
 	}
 
 	/**
-	 * demonstrate the way to import massive data
+	 * demonstrate the way to import massive data.
+	 * Don't import too many data for each ready() since setting cell value keeps spreadsheet busy and can't response to the user interaction.
 	 */
 	private void initializeMassiveCells() {
 		spreadsheet.ready()
 		.thenRun(() -> insertDataByRow(200));
-		spreadsheet.ready()
-		.thenRun(() -> insertDataByRow(200));
+//		spreadsheet.ready()
+//		.thenRun(() -> insertDataByRow(200));
 		// add more statements of spreadsheet.ready().thenRun()
 	}
 
@@ -164,10 +160,6 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
 		ExceptionalConsumer<RangeEvent> listener = (e) -> {
 			RangeSelectEvent event = (RangeSelectEvent) e;
 			selectedRange = event.getActiveSelection();
-			selectedRange.loadCellStyle()
-					.thenAccept(cellStyle -> {
-						System.out.println(cellStyle.getProtection().isLocked());
-					});
 			// get value first.
 			event.getRange().loadValue()
 			.thenApply(activate())
