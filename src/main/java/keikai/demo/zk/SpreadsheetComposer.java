@@ -547,7 +547,12 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
 //		System.out.println(style.getProtection().isLocked());
 
 	}
-	
+
+	@Listen("onClick = #hideSheet")
+	public void hideSheet() throws ExecutionException, InterruptedException {
+		spreadsheet.loadActiveWorksheet().get().setVisible(Worksheet.Visibility.Hidden);
+	}
+
 	private void enableSocketIOLog() {
 		Logger log = java.util.logging.Logger.getLogger("");
 		log.setLevel(Level.FINER);

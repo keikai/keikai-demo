@@ -20,6 +20,7 @@
     		<toolbarbutton id="addMore" label="insert 100 row data"/>
     		<toolbarbutton label="Fill" popup="fillPopup"/>
     		<toolbarbutton id="showStyle" label="Show Style"/>
+			<toolbarbutton id="hideSheet" label="Hide Sheet"/>
    		</toolbar>
    		<hlayout spacing="50px" style="border: 1px solid black;padding:2px">
         	<hlayout >
@@ -40,12 +41,13 @@
         <menupopup id="contextMenu">
         	<menuitem label="Fill" popup="fillPopup"/>
         </menupopup>
-       	<popup id="filePopup">
-            <groupbox width="300px" height="400px">
-                <caption label="File List" ca:name="caption"/>
-                <listbox id="filelistBox">
+       	<popup id="filePopup" >
+            <groupbox width="300px" >
+                <caption label="File List"/>
+                <listbox id="filelistBox" height="400px">
                     <template name="model">
 	                	<listitem >
+							<!-- name attribute for client test -->
 	                		<listcell ca:name="${each}" label="${each}"/>
 	                	</listitem>
                     </template>
@@ -118,6 +120,6 @@
         			<button id="applyFill" iconSclass="z-icon-check" />
         		</vlayout>
         	</groupbox>
-       	</popup>        
+       	</popup>
     </vlayout>
 </zk>
