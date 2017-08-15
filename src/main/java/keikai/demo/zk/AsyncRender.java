@@ -14,6 +14,7 @@ public class AsyncRender {
 
 	/**
 	 * return a Consumer that executes UI update logic between activation / de-activation of a desktop. (Template Method pattern)
+	 * it should be called in an ZK event listener.
 	 * @param update a consumer function thats perform UI update logic
 	 * @return a Consumer that executes UI update logic between activation / de-activation of a desktop
 	 */
@@ -45,4 +46,9 @@ public class AsyncRender {
 		};
 	}
 
+	static public void render(Desktop desktop, Runnable update) throws InterruptedException {
+		Executions.activate(desktop);
+		update.run();
+		Executions.deactivate(desktop);
+	}
 }

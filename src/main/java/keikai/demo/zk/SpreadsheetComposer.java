@@ -19,8 +19,8 @@ import java.util.function.*;
 import java.util.logging.*;
 
 import keikai.demo.Configuration;
-import keikai.demo.zk.SpreadsheetComposer.ExceptionableFunction;
 
+import org.apache.poi.hssf.record.formula.functions.T;
 import org.zkoss.zhtml.Script;
 import org.zkoss.zk.ui.*;
 import org.zkoss.zk.ui.event.*;
@@ -204,27 +204,20 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
 
 		ExceptionalConsumer<RangeEvent> keyListener = (e) -> {
 			RangeKeyEvent keyEvent = (RangeKeyEvent) e;
-			try {
-				Executions.activate(desktop);
-				//just left-top corner cell
+			AsyncRender.render(desktop, () -> {
 				String range = keyEvent.getRange().getA1Notation().split(":")[0];
 				keyCode.setValue(range + "[keyCode=" + keyEvent.getKeyCode() + "], shift: " + keyEvent.isShiftKey()
 						+ ", ctrl: " + keyEvent.isCtrlKey() + ", alt: " + keyEvent.isAltKey() + ", meta: "
 						+ keyEvent.isMetaKey());
-			} finally {
-				Executions.deactivate(desktop);
-			}
+			});
 		};
 		
 		// open a context menu
 		ExceptionalConsumer<RangeEvent> mouseListener = (e) -> {
 			CellMouseEvent mouseEvent = (CellMouseEvent) e;
-			try {
-				Executions.activate(desktop);
+			AsyncRender.render(desktop, () -> {
 				contextMenu.open(mouseEvent.getPageX(), mouseEvent.getPageY());
-			} finally {
-				Executions.deactivate(desktop);
-			}
+			});
 		};
 		spreadsheet.addEventListener(Events.ON_KEY_DOWN, keyListener::accept);
 		spreadsheet.addEventListener(Events.ON_CELL_RIGHT_CLICK, mouseListener::accept);
