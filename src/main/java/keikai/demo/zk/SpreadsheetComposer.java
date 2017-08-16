@@ -531,6 +531,21 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
 		spreadsheet.loadActiveWorksheet().get().setVisible(Worksheet.Visibility.Hidden);
 	}
 
+	@Listen("onClick = #delete ; onClick = #deleteSelection")
+	public void delete(){
+		selectedRange.delete(DeleteShiftDirection.ShiftUp);
+	}
+
+	@Listen("onClick = #deleteEntireRow")
+	public void deleteEntireRow(){
+		selectedRange.getRows().delete(DeleteShiftDirection.ShiftUp);
+	}
+
+	@Listen("onClick = #deleteEntireColumn")
+	public void deleteEntireColumn(){
+		selectedRange.getColumns().delete(DeleteShiftDirection.ShiftToLeft);
+	}
+
 	private void enableSocketIOLog() {
 		Logger log = java.util.logging.Logger.getLogger("");
 		log.setLevel(Level.FINER);
