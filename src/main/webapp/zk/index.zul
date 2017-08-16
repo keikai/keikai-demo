@@ -28,8 +28,6 @@
         				style="font-weight:bold;" />
         			:
         			<textbox id="cellValue"/>
-        			Selection:
-        			<label id="msg" value="A1"/>
         			FocusTo:
         			<textbox id="focusTo" constraint="no empty" value="A10"/>
         			KeyCode: <label id="keyCode" />

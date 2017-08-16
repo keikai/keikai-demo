@@ -187,23 +187,9 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
 				}).run();
 			});
 
-			//update control area with server push, since this code is run in a separate thread
-			try { 
-				Executions.activate(desktop);
-				((Label) getSelf().getFellow("msg")).setValue(event.toString());
-				String cellAddress = event.getRange().getA1Notation();
-				String[] refs = cellAddress.split(":");
-				cellAddress = refs.length > 1 ? refs[0].equals(refs[1]) ? refs[0] : cellAddress : cellAddress;
-
-				Label label = ((Label) getSelf().getFellow("cell"));
-
-				if (!label.getValue().equals(cellAddress)) {
-					label.setValue(cellAddress);
-
-				}
-			} finally {
-				Executions.deactivate(desktop);
-			}
+			AsyncRender.getUpdateRunner(desktop, () -> {
+				((Label) getSelf().getFellow("cell")).setValue(event.toString());
+			}).run();
 		};
 		
 		//register spreadsheet event listeners
