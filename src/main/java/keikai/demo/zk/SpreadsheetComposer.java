@@ -14,13 +14,13 @@ package keikai.demo.zk;
 import static com.keikai.util.Converter.numToAbc;
 
 import java.io.*;
+import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 import java.util.function.*;
 import java.util.logging.*;
 
 import keikai.demo.Configuration;
 
-import org.apache.poi.hssf.record.formula.functions.T;
 import org.zkoss.zhtml.Script;
 import org.zkoss.zk.ui.*;
 import org.zkoss.zk.ui.event.*;
@@ -160,24 +160,32 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
 		ExceptionalConsumer<RangeEvent> listener = (e) -> {
 			RangeSelectEvent event = (RangeSelectEvent) e;
 			selectedRange = event.getActiveSelection();
-			// get value first.
-			event.getRange().loadValue()
-			.thenApply(activate())
-			.thenAccept((rangeValue) -> {
-				// ignore validation on null value
-				if (rangeValue.getCellValue().isFormula()){
-					cellValueBox.setRawValue(rangeValue.getCellValue().getFormula());
-				}else{
-					cellValueBox.setRawValue(rangeValue.getValue());
-				}
-				CellValue cellValue = rangeValue.getCellValue();
-				cellInfo.setValue(" [formula: " + cellValue.getFormula() +
-						", number: " + cellValue.getDoubleValue() +
-						", text: " + cellValue.getStringValue() +
-						", format: " + cellValue.getFormat() +
-						", date: " + cellValue.getDateValue() + "]");
-			})
-			.whenComplete(deactivate());
+
+			event.getRange().loadValue().thenAccept((rangeValue) ->{
+				AsyncRender.getUpdateRunner( desktop,() -> {
+					// ignore validation on null value
+					if (rangeValue.getCellValue().isFormula()){
+						cellValueBox.setRawValue(rangeValue.getCellValue().getFormula());
+					}else{
+						cellValueBox.setRawValue(rangeValue.getValue());
+					}
+					Optional<CellValue> optionalCellValue = Optional.of(rangeValue.getCellValue());
+
+					StringBuffer cellInfoBuffer = new StringBuffer();
+					Consumer appendInfo = (value) -> {
+						cellInfoBuffer.append(value.toString()+", ");
+					};
+					optionalCellValue.map(CellValue::getDoubleValue)
+							.ifPresent(appendInfo);
+					optionalCellValue.map(CellValue::getFormula)
+							.ifPresent(appendInfo);
+					optionalCellValue.map(CellValue::getDateValue)
+							.ifPresent(appendInfo);
+					optionalCellValue.map(CellValue::getStringValue)
+							.ifPresent(appendInfo);
+					cellInfo.setValue(cellInfoBuffer.toString());
+				}).run();
+			});
 
 			//update control area with server push, since this code is run in a separate thread
 			try { 
@@ -204,33 +212,32 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
 
 		ExceptionalConsumer<RangeEvent> keyListener = (e) -> {
 			RangeKeyEvent keyEvent = (RangeKeyEvent) e;
-			AsyncRender.render(desktop, () -> {
+			AsyncRender.getUpdateRunner(desktop, () -> {
 				String range = keyEvent.getRange().getA1Notation().split(":")[0];
 				keyCode.setValue(range + "[keyCode=" + keyEvent.getKeyCode() + "], shift: " + keyEvent.isShiftKey()
 						+ ", ctrl: " + keyEvent.isCtrlKey() + ", alt: " + keyEvent.isAltKey() + ", meta: "
 						+ keyEvent.isMetaKey());
-			});
+			}).run();
 		};
-		
 		// open a context menu
 		ExceptionalConsumer<RangeEvent> mouseListener = (e) -> {
 			CellMouseEvent mouseEvent = (CellMouseEvent) e;
-			AsyncRender.render(desktop, () -> {
+			AsyncRender.getUpdateRunner(desktop, () -> {
 				contextMenu.open(mouseEvent.getPageX(), mouseEvent.getPageY());
-			});
+			}).run();
 		};
 		spreadsheet.addEventListener(Events.ON_KEY_DOWN, keyListener::accept);
 		spreadsheet.addEventListener(Events.ON_CELL_RIGHT_CLICK, mouseListener::accept);
 	}
 
 	/**
-	 * get a spreadsheet java client and render spreadsheet on a browser 
+	 * get a spreadsheet java client and getUpdateRunner spreadsheet on a browser
 	 */
 	private void initSpreadsheet() {
 		spreadsheet = Keikai.newClient(Configuration.KEIKAI_SERVER); //connect to keikai server
 		//pass target element's id and get keikai script URI
 		String scriptUri = spreadsheet.getURI(getSelf().getFellow("myss").getUuid());
-		//load the initial script to render spreadsheet at the client
+		//load the initial script to getUpdateRunner spreadsheet at the client
 		Script initialScript = new Script();
 		initialScript.setSrc(scriptUri);
 		initialScript.setDefer(true);
@@ -402,7 +409,7 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
 	@Listen("onClick = #focusCell")
 	public void focusCell(Event event) {
 		spreadsheet.loadActiveCell()
-			.thenAccept(AsyncRender.acceptUpdate((Range range) ->{
+			.thenAccept(AsyncRender.getUpdateConsumer((Range range) ->{
 				//implement logic to update ZK components
 				Clients.showNotification("Focus Cell: " + range.getA1Notation());
 			})).exceptionally((ex) ->{
@@ -472,7 +479,7 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
 //				Executions.deactivate(getSelf().getDesktop());
 //			}
 //		});
-		spreadsheet.ready(AsyncRender.runUpdate(() -> {
+		spreadsheet.ready(AsyncRender.getUpdateRunner(() -> {
 			Clients.clearBusy();
 		}));
 	}
