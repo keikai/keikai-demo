@@ -455,16 +455,6 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
 	public void insertData() {
 		Clients.showBusy("send data...");
 		insertDataByRow(100);
-//		spreadsheet.ready(() -> {
-//			try {
-//				Executions.activate(getSelf().getDesktop());
-//				Clients.clearBusy();
-//			} catch (Exception e) {
-//				e.printStackTrace();
-//			} finally {
-//				Executions.deactivate(getSelf().getDesktop());
-//			}
-//		});
 		spreadsheet.ready(AsyncRender.getUpdateRunner(() -> {
 			Clients.clearBusy();
 		}));
@@ -581,28 +571,6 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
 		log.addHandler(handler);
 	}	
 	
-	public <T> BiConsumer<T, ? super Throwable> deactivate() {
-		Desktop desktop = getSelf().getDesktop();
-		return (v, ex) -> {
-			if (ex != null) {
-				ex.printStackTrace();
-			}
-			Executions.deactivate(desktop);
-		};
-	}
-
-	/**
-	 * Returns a function that activate a desktop and handles exceptions
-	 * @return
-	 */
-	public <T> ExceptionableFunction<T, T> activate() {
-		Desktop desktop = getSelf().getDesktop();
-		return result -> {
-			Executions.activate(desktop);
-			return result;
-		};
-	}
-
 	/**
 	 * Since a lambda can't throw exceptions so we need to catch it and throw an unchecked exception
 	 * @author hawk
