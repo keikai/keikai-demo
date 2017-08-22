@@ -9,11 +9,13 @@ import org.junit.*;
 import org.openqa.selenium.*;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.interactions.Actions;
+import org.openqa.selenium.support.ui.WebDriverWait;
 
 
 public class CanvasTest {
 	static private String SERVER_URL = "http://localhost:8080/java-client-demo";
 	static private WebDriver driver;
+	static WebDriverWait webDriverWait;
 	static private File SCREENSHOT_FOLDER = new File("./target/screenshot/"); //screenshot output folder
 
 	@BeforeClass
@@ -23,6 +25,8 @@ public class CanvasTest {
 		driver.manage().window().setSize(new Dimension(1200, 1000));
 		//wait for a short delay for each action, e.g. editor appears after a double-clicking
 		driver.manage().timeouts().implicitlyWait(1, TimeUnit.SECONDS);
+
+		webDriverWait = new WebDriverWait(driver, 5);
 	}
 
 	@AfterClass
@@ -36,7 +40,7 @@ public class CanvasTest {
 	@Test
 	public void smokeTest() throws IOException {
 		driver.get(SERVER_URL+"/zk/index.zul");
-		KeikaiTester.waitKeikaiLoaded(driver);
+		KeikaiTester.waitKeikaiLoaded(webDriverWait);
 		WebElement keikai = KeikaiTester.getKeikaiMain(driver);
 		Actions action = new Actions(driver);
 		action.moveToElement(keikai,40, 30).doubleClick().build().perform();
@@ -51,7 +55,7 @@ public class CanvasTest {
 	@Test
 	public void loadFile() throws IOException{
 		driver.get(SERVER_URL+"/zk/index.zul");
-		KeikaiTester.waitKeikaiLoaded(driver);
+		KeikaiTester.waitKeikaiLoaded(webDriverWait);
 		driver.findElement(By.className("z-icon-list-alt")).click();
 		String fileName = "template.xlsx";
 		driver.findElement(By.name(fileName)).click();

@@ -5,6 +5,7 @@ import org.openqa.selenium.support.ui.*;
 
 public class KeikaiTester {
 
+
 	static WebElement getEditor(WebDriver driver) {
 		return driver.findElement(By.cssSelector(".keditor"));
 	}
@@ -18,8 +19,8 @@ public class KeikaiTester {
 		return driver.findElement(By.xpath("//canvas[1]"));
 	}
 
-	static void waitKeikaiLoaded(WebDriver driver) {
-		(new WebDriverWait(driver, 5)).until(new ExpectedCondition<Boolean>() {
+	static void waitKeikaiLoaded(WebDriverWait webDriverWait) {
+		webDriverWait.until(new ExpectedCondition<Boolean>() {
 			public Boolean apply(WebDriver driver) {
 				return driver.findElement(By.cssSelector(".keikai-inner")) != null;
 			}
