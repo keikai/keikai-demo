@@ -1,28 +1,7 @@
 <?script src="canvasTool.js" ?>
 <zk xmlns:x="xhtml" xmlns:n="native" xmlns:ca="client/attribute">
     <vlayout id="root" apply="keikai.demo.zk.SpreadsheetComposer" width="1200px" height="800px">
-   		<toolbar>
-   		    <toolbarbutton iconSclass="z-icon-list-alt" popup="filePopup"/>
-   			<toolbarbutton iconSclass="z-icon-file" />
-   			<toolbarbutton iconSclass="z-icon-upload" />
-   			<toolbarbutton iconSclass="z-icon-file-excel-o" />
-   			<selectbox id="fontSizeBox" />
-   			<toolbarbutton iconSclass="z-icon-bold" />
-   			<toolbarbutton iconSclass="z-icon-italic" />
-   			<toolbarbutton iconSclass="z-icon-underline" />
-   			<toolbarbutton iconSclass="z-icon-th" popup="borderPopup"/>
-   			<toolbarbutton iconSclass="z-icon-filter" popup="filterPopup"/>
-   			<toolbarbutton id="clearContents" iconSclass="z-icon-eraser" />
-   			<toolbarbutton iconSclass="z-icon-usd"  popup="formatPopup"/>
-   			<toolbarbutton iconSclass="z-icon-list-alt"  popup="validationPopup"/>
-   			<toolbarbutton label="wrap"/>
-    		<toolbarbutton id="focusCell" label="Show Focus Cell"/>
-    		<toolbarbutton id="addMore" label="insert 100 row data"/>
-    		<toolbarbutton label="Fill" popup="fillPopup"/>
-    		<toolbarbutton id="showStyle" label="Show Style"/>
-			<toolbarbutton id="hideSheet" label="Hide Sheet"/>
-			<toolbarbutton id="deleteSelection" label="Delete"/>
-   		</toolbar>
+		<apply templateURI="toolbar.zul"/>
    		<hlayout spacing="50px" style="border: 1px solid black;padding:2px">
         	<hlayout >
         			<label id="cell" value="A1"
@@ -37,91 +16,24 @@
         	</hlayout>
         </hlayout>
         <div id="myss" width="1200px" height="700px"></div>
-        <menupopup id="contextMenu">
-			<menuitem label="Delete" id="delete"/>
-			<menuitem label="Delete Entire Row" id="deleteEntireRow"/>
-			<menuitem label="Delete Entire Column" id="deleteEntireColumn"/>
-        	<menuitem label="Fill" popup="fillPopup"/>
-        </menupopup>
-       	<popup id="filePopup" >
-            <groupbox width="300px" >
-                <caption label="File List"/>
-                <listbox id="filelistBox" height="400px">
-                    <template name="model">
-	                	<listitem >
-							<!-- name attribute for client test -->
-	                		<listcell ca:name="${each}" label="${each}"/>
-	                	</listitem>
-                    </template>
-                </listbox>
-            </groupbox>
-       	</popup>
-       	<popup id="borderPopup">
-       		<groupbox>
-        		<caption label="Border"/>
-	   			<selectbox id="borderIndexBox" />
-	   			<selectbox id="borderLineStyleBox" />
-	   			<colorbox id="borderColorBox" value="#363636" />
-	   			<button id="clearBorder" iconSclass="z-icon-eraser"/>
-	   			<button id="applyBorder" iconSclass="z-icon-check"/>
-   			</groupbox>
-       	</popup>
-       	<popup id="filterPopup">
-        	<groupbox>
-        		<caption label="Auto Filter"/>
-        		<div>
-        			Field Index:
-        			<intbox id="filterField" value="0" />
-        		</div>
-        		<div>
-        			Criteria1:
-        			<textbox id="filterCriteria1" />
-        		</div>
-        		<div>
-        			Operator:
-        			<selectbox id="filterOperator" />
-        		</div>
-        		<div>
-        			<button id="filterClear" iconSclass="z-icon-ban" />
-        			<button id="filterBtn" iconSclass="z-icon-check"/>
-        		</div>
-        	</groupbox>
-       	</popup>
-       	<popup id="formatPopup">
-       		<groupbox>
-       			<caption label="Format"/>
-       			<textbox id="numfmt" value="0.00"/>
-       			<button id="applyFormat" iconSclass="z-icon-check" />
-       		</groupbox>
-       	</popup>
-       	<popup id="validationPopup">
-       		<groupbox>
-       			<caption label="Validation"/>
-       			<vlayout>
-       			type: 
-       			<n:span>list</n:span>
-       			formula: <textbox id="validationFormulaBox" />
-       			input title: <textbox id="inputTitleBox"/>
-       			input message: <textbox id="inputMsgBox"/>
-       			error title: <textbox id="errorTitleBox"/>
-       			error message: <textbox id="errorMsgBox"/>
-       			<button id="applyValidation" iconSclass="z-icon-check" />
-       			</vlayout>
-       		</groupbox>
-       	</popup>
-		<popup id="fillPopup">
-        	<groupbox>
-        		<caption label="Fill" />
-        		<vlayout>
-        			Foreground:
-        			<colorbox id="foregroundColorBox" />
-        			Background:
-        			<colorbox id="backgroundColorBox" />
-        			Pattern Style:
-        			<selectbox id="fillPatternBox" />
-        			<button id="applyFill" iconSclass="z-icon-check" />
-        		</vlayout>
-        	</groupbox>
-       	</popup>
+		<menupopup id="contextMenu">
+			<menuitem label="Delete row" id="deleteEntireRow"/>
+			<menuitem label="Delete column" id="deleteEntireColumn"/>
+			<menu label="Delete Cells">
+				<menupopup>
+					<menuitem label="Shift left" />
+					<menuitem label="Shift up" />
+				</menupopup>
+			</menu>
+			<menuitem label="Insert row" />
+			<menuitem label="Insert column" id="insertEntireColumn"/>
+			<menu label="Insert Cells">
+				<menupopup>
+					<menuitem label="Shift down" />
+					<menuitem label="Shift right" />
+				</menupopup>
+			</menu>
+			<menuitem label="Fill" popup="fillPopup"/>
+		</menupopup>
     </vlayout>
 </zk>
