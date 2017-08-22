@@ -531,19 +531,44 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
 		spreadsheet.loadActiveWorksheet().get().setVisible(Worksheet.Visibility.Hidden);
 	}
 
-	@Listen("onClick = #delete ; onClick = #deleteSelection")
-	public void delete(){
-		selectedRange.delete(DeleteShiftDirection.ShiftUp);
-	}
-
-	@Listen("onClick = #deleteEntireRow")
+	@Listen("onClick = menuitem[label='Delete row']")
 	public void deleteEntireRow(){
 		selectedRange.getRows().delete(DeleteShiftDirection.ShiftUp);
 	}
 
-	@Listen("onClick = #deleteEntireColumn")
+	@Listen("onClick = menuitem[label='Delete column']")
 	public void deleteEntireColumn(){
 		selectedRange.getColumns().delete(DeleteShiftDirection.ShiftToLeft);
+	}
+
+	@Listen("onClick = menuitem[label='Shift up']")
+	public void deleteShiftUp(){
+		selectedRange.delete(DeleteShiftDirection.ShiftUp);
+	}
+
+	@Listen("onClick = menuitem[label='Shift left']")
+	public void deleteShiftLeft(){
+		selectedRange.delete(DeleteShiftDirection.ShiftToLeft);
+	}
+
+
+	@Listen("onClick = menuitem[label='Insert column']")
+	public void insertColumn(){
+		selectedRange.getColumns().insert(InsertShiftDirection.ShiftToRight, InsertFormatOrigin.LeftOrAbove);
+	}
+	@Listen("onClick = menuitem[label='Insert row']")
+	public void insertRow(){
+		selectedRange.getRows().insert(InsertShiftDirection.ShiftToRight, InsertFormatOrigin.LeftOrAbove);
+	}
+
+	@Listen("onClick = menuitem[label='Shift right']")
+	public void insertShiftRight(){
+		selectedRange.insert(InsertShiftDirection.ShiftToRight, InsertFormatOrigin.LeftOrAbove);
+	}
+
+	@Listen("onClick = menuitem[label='Shift down']")
+	public void insertShiftDown(){
+		selectedRange.insert(InsertShiftDirection.ShiftDown, InsertFormatOrigin.LeftOrAbove);
 	}
 
 	private void enableSocketIOLog() {
