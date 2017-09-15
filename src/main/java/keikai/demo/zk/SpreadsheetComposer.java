@@ -188,7 +188,7 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
 			});
 
 			AsyncRender.getUpdateRunner(desktop, () -> {
-				((Label) getSelf().getFellow("cell")).setValue(event.toString());
+				((Label) getSelf().getFellow("cell")).setValue(selectedRange.getA1Notation());
 			}).run();
 		};
 		
@@ -262,6 +262,7 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
 		filePopup.close();
 		String fileName = fileListModel.getSelection().iterator().next();
 		importFile(fileName);
+		fileListModel.clearSelection();
 	}
 
 	/**
@@ -511,14 +512,13 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
 	@Listen("onClick = #showStyle")
 	public void showCellStyle() throws InterruptedException, ExecutionException{
 		CellStyle style = selectedRange.loadCellStyle().get();
-		Clients.showNotification(style.toString());
-//		System.out.println(style.getProtection().isLocked());
+		Clients.showNotification(style.toString()+ "," + style.getProtection().isLocked());
 
 	}
 
 	@Listen("onClick = #hideSheet")
 	public void hideSheet() throws ExecutionException, InterruptedException {
-		spreadsheet.loadActiveWorksheet().get().setVisible(Worksheet.Visibility.Hidden);
+		spreadsheet.loadActiveWorksheet().get().applyVisible(Worksheet.Visibility.Hidden);
 	}
 
 	@Listen("onClick = menuitem[label='Delete row']")
@@ -548,7 +548,7 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
 	}
 	@Listen("onClick = menuitem[label='Insert row']")
 	public void insertRow(){
-		selectedRange.getRows().insert(InsertShiftDirection.ShiftToRight, InsertFormatOrigin.LeftOrAbove);
+		selectedRange.getRows().insert(InsertShiftDirection.ShiftDown, InsertFormatOrigin.LeftOrAbove);
 	}
 
 	@Listen("onClick = menuitem[label='Shift right']")

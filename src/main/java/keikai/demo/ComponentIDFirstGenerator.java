@@ -6,7 +6,7 @@ import org.zkoss.zk.ui.metainfo.*;
 import org.zkoss.zk.ui.sys.IdGenerator;
 
 /**
- * Use component's ID first if exists then 
+ * Use component's ID first if exists. If not, then use static ID generator.
  * @author hawk
  *
  */
