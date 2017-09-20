@@ -160,7 +160,6 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
 		ExceptionalConsumer<RangeEvent> listener = (e) -> {
 			RangeSelectEvent event = (RangeSelectEvent) e;
 			selectedRange = event.getActiveSelection();
-
 			event.getRange().loadValue().thenAccept((rangeValue) ->{
 				AsyncRender.getUpdateRunner( desktop,() -> {
 					// ignore validation on null value
@@ -180,6 +179,8 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
 					optionalCellValue.map(CellValue::getFormula)
 							.ifPresent(appendInfo);
 					optionalCellValue.map(CellValue::getDateValue)
+							.ifPresent(appendInfo);
+					optionalCellValue.map(CellValue::getBooleanValue)
 							.ifPresent(appendInfo);
 					optionalCellValue.map(CellValue::getStringValue)
 							.ifPresent(appendInfo);
@@ -234,19 +235,19 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
 
 	@SuppressWarnings("unchecked")
 	private void initControlArea() {
-		borderIndexBox.setModel(new ListModelArray<BorderIndex>(BorderIndex.values()));
+		borderIndexBox.setModel(new ListModelArray<>(BorderIndex.values()));
 		((Selectable<BorderIndex>)borderIndexBox.getModel()).addToSelection(BorderIndex.EdgeBottom);
 		
-		borderLineStyleBox.setModel(new ListModelArray<Border.Style>(Border.Style.values()));
+		borderLineStyleBox.setModel(new ListModelArray<>(Border.Style.values()));
 		((Selectable<Border.Style>)borderLineStyleBox.getModel()).addToSelection(Border.Style.Thin);
 		
-		filterOperator.setModel(new ListModelArray<AutoFilterOperator>(AutoFilterOperator.values()));
+		filterOperator.setModel(new ListModelArray<>(AutoFilterOperator.values()));
 		((Selectable<AutoFilterOperator>) filterOperator.getModel()).addToSelection(AutoFilterOperator.FilterValues);
 		
-		fontSizeBox.setModel(new ListModelArray<String>(Configuration.fontSizes));
+		fontSizeBox.setModel(new ListModelArray<>(Configuration.fontSizes));
 		((Selectable<String>) fontSizeBox.getModel()).addToSelection("12");
 		
-		fillPatternBox.setModel(new ListModelArray<PatternType>(PatternType.values()));
+		fillPatternBox.setModel(new ListModelArray<>(PatternType.values()));
 		((Selectable<PatternType>)fillPatternBox.getModel()).addToSelection(PatternType.Solid);
 
 		fileListModel = new ListModelList(generateBookList());
@@ -523,12 +524,15 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
 
 	@Listen("onClick = menuitem[label='Delete row']")
 	public void deleteEntireRow(){
-		selectedRange.getRows().delete(DeleteShiftDirection.ShiftUp);
+		//FIXME workaround, for https://github.com/zkoss/keikai/issues/497
+		spreadsheet.getRange((selectedRange.getRow()+1)+":"+(selectedRange.getLastRow()+1)).delete(DeleteShiftDirection.ShiftUp);
 	}
 
 	@Listen("onClick = menuitem[label='Delete column']")
 	public void deleteEntireColumn(){
-		selectedRange.getColumns().delete(DeleteShiftDirection.ShiftToLeft);
+		//FIXME hard to implement, for https://github.com/zkoss/keikai/issues/497
+//		selectedRange.getColumns().delete(DeleteShiftDirection.ShiftToLeft);
+		spreadsheet.getRange("A:B").delete(DeleteShiftDirection.ShiftToLeft);
 	}
 
 	@Listen("onClick = menuitem[label='Shift up']")
