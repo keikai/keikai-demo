@@ -385,7 +385,7 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
 	
 	@Listen("onClick = toolbarbutton[label='wrap']")
 	public void wrap(){
-		selectedRange.applyWrapText(true);;
+		selectedRange.applyWrapText(true);
 	}	
 
 	@Listen("onChange = #focusTo")
@@ -428,8 +428,11 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
 	}
 
 	@Listen("onClick = #clearBorder")
-	public void clearBorders(Event evt) {
-		selectedRange.clearBorders();
+	public void clearBorders(Event evt) throws ExecutionException, InterruptedException {
+		//FIXME doesn't clear inside vertical and horizontal
+		Borders borders = selectedRange.loadCellStyle().get().getBorders();
+		borders.setStyle(Border.Style.None);
+		selectedRange.applyBorders(borders);
 	}
 
 	@Listen("onClick = #filterClear")
