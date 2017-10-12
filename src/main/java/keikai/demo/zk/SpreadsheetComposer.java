@@ -500,15 +500,12 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
 
 	@Listen("onClick = menuitem[label='Delete row']")
 	public void deleteEntireRow(){
-		//FIXME workaround, for https://github.com/zkoss/keikai/issues/497
-		spreadsheet.getRange((selectedRange.getRow()+1)+":"+(selectedRange.getLastRow()+1)).delete(DeleteShiftDirection.ShiftUp);
+		selectedRange.delete(DeleteShiftDirection.ShiftUp);
 	}
 
 	@Listen("onClick = menuitem[label='Delete column']")
 	public void deleteEntireColumn(){
-		//FIXME hard to implement, for https://github.com/zkoss/keikai/issues/497
-//		selectedRange.getColumns().delete(DeleteShiftDirection.ShiftToLeft);
-		spreadsheet.getRange("A:B").delete(DeleteShiftDirection.ShiftToLeft);
+		selectedRange.delete(DeleteShiftDirection.ShiftToLeft);
 	}
 
 	@Listen("onClick = menuitem[label='Shift up']")
