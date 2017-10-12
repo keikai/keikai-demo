@@ -4,10 +4,6 @@
         <toolbarbutton iconSclass="z-icon-file" />
         <toolbarbutton iconSclass="z-icon-upload" />
         <toolbarbutton iconSclass="z-icon-file-excel-o" />
-        <selectbox id="fontSizeBox" />
-        <toolbarbutton iconSclass="z-icon-bold" />
-        <toolbarbutton iconSclass="z-icon-italic" />
-        <toolbarbutton iconSclass="z-icon-underline" />
         <toolbarbutton iconSclass="z-icon-th" popup="borderPopup"/>
         <toolbarbutton iconSclass="z-icon-filter" popup="filterPopup"/>
         <toolbarbutton id="clearContents" iconSclass="z-icon-eraser" />
@@ -21,6 +17,14 @@
         <toolbarbutton id="hideSheet" label="Hide Sheet"/>
         <toolbarbutton id="deleteSelection" label="Delete"/>
     </toolbar>
+    <menubar>
+        <menu label="Style">
+            <menupopup>
+                <menuitem label="Bold" iconSclass="z-icon-bold"></menuitem>
+                <menuitem label="Borders" popup="borderPopup"/>
+            </menupopup>
+        </menu>
+    </menubar>
     <popup id="filePopup">
         <groupbox width="300px">
             <caption label="File List"/>

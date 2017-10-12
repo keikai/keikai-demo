@@ -82,8 +82,6 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
 	@Wire
 	private Colorbox borderColorBox;
 	@Wire
-	private Selectbox fontSizeBox;
-	@Wire
 	private Popup filePopup;
 
 	@Wire 
@@ -194,8 +192,8 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
 		};
 		
 		//register spreadsheet event listeners
-		spreadsheet.addEventListener(Events.ON_UPDATE_SELECTION, listener::accept);
-		spreadsheet.addEventListener(Events.ON_MOVE_FOCUS, listener::accept);
+		spreadsheet.addEventListener(Events.ON_NEW_SELECTION, listener::accept);
+//		spreadsheet.addEventListener(Events.ON_MOVE_FOCUS, listener::accept);
 
 		ExceptionalConsumer<RangeEvent> keyListener = (e) -> {
 			RangeKeyEvent keyEvent = (RangeKeyEvent) e;
@@ -244,9 +242,7 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
 		filterOperator.setModel(new ListModelArray<>(AutoFilterOperator.values()));
 		((Selectable<AutoFilterOperator>) filterOperator.getModel()).addToSelection(AutoFilterOperator.FilterValues);
 		
-		fontSizeBox.setModel(new ListModelArray<>(Configuration.fontSizes));
-		((Selectable<String>) fontSizeBox.getModel()).addToSelection("12");
-		
+
 		fillPatternBox.setModel(new ListModelArray<>(PatternType.values()));
 		((Selectable<PatternType>)fillPatternBox.getModel()).addToSelection(PatternType.Solid);
 
@@ -310,7 +306,11 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
 			}
 		});
 
-	}		
+	}
+
+	/**
+	 * demonstrate how to change a font style
+	 */
 	@Listen("onClick = toolbarbutton[iconSclass='z-icon-bold']")
 	public void makeBold(){
 		Font font = selectedRange.createFont();
@@ -335,34 +335,7 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
 		 */
 	}
 
-	@Listen("onClick = toolbarbutton[iconSclass='z-icon-italic']")
-	public void makeItalic(){
-		Font font = selectedRange.createFont();
-		font.setItalic(true);
-		selectedRange.applyFont(font);
-	}	
 
-	@Listen("onClick = toolbarbutton[iconSclass='z-icon-underline']")
-	public void makeUnderline(){
-		Font font = selectedRange.createFont();
-		font.setUnderline(Underline.Single);;
-		selectedRange.applyFont(font);
-	}
-	
-	@Listen("onSelect = #fontSizeBox")
-	public void changeFontSize(){
-		String fontSize = ((Selectable<String>)fontSizeBox.getModel()).getSelection().iterator().next();
-		Font font = selectedRange.createFont();
-		font.setSize(Integer.valueOf(fontSize));
-		selectedRange.applyFont(font);
-		/*
-		range.loadCellStyle().thenAccept((style) ->{
-			style.getFont().setSize(Integer.valueOf(fontSize));			
-			range.applyCellStyle(style);
-		});
-		*/
-	}	
-	
 	@Listen("onClick = #applyFill")
 	public void changeFillPattern(Event e){
 		PatternFill fill = selectedRange.createPatternFill();
@@ -551,11 +524,11 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
 
 	@Listen("onClick = menuitem[label='Insert column']")
 	public void insertColumn(){
-		selectedRange.getColumns().insert(InsertShiftDirection.ShiftToRight, InsertFormatOrigin.LeftOrAbove);
+		selectedRange.insert(InsertShiftDirection.ShiftToRight, InsertFormatOrigin.LeftOrAbove);
 	}
 	@Listen("onClick = menuitem[label='Insert row']")
 	public void insertRow(){
-		selectedRange.getRows().insert(InsertShiftDirection.ShiftDown, InsertFormatOrigin.LeftOrAbove);
+		selectedRange.insert(InsertShiftDirection.ShiftDown, InsertFormatOrigin.LeftOrAbove);
 	}
 
 	@Listen("onClick = menuitem[label='Shift right']")
