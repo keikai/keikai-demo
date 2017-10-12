@@ -1,29 +1,30 @@
 <zk xmlns:x="xhtml" xmlns:n="native" xmlns:ca="client/attribute">
-    <toolbar>
-        <toolbarbutton iconSclass="z-icon-list-alt" popup="filePopup"/>
-        <toolbarbutton iconSclass="z-icon-file" />
-        <toolbarbutton iconSclass="z-icon-upload" />
-        <toolbarbutton iconSclass="z-icon-file-excel-o" />
-        <toolbarbutton iconSclass="z-icon-th" popup="borderPopup"/>
-        <toolbarbutton iconSclass="z-icon-filter" popup="filterPopup"/>
-        <toolbarbutton id="clearContents" iconSclass="z-icon-eraser" />
-        <toolbarbutton iconSclass="z-icon-usd"  popup="formatPopup"/>
-        <toolbarbutton iconSclass="z-icon-list-alt"  popup="validationPopup"/>
-        <toolbarbutton label="wrap"/>
-        <toolbarbutton id="focusCell" label="Show Focus Cell"/>
-        <toolbarbutton id="addMore" label="insert 100 row data"/>
-        <toolbarbutton label="Fill" popup="fillPopup"/>
-        <toolbarbutton id="showStyle" label="Show Style"/>
-        <toolbarbutton id="hideSheet" label="Hide Sheet"/>
-        <toolbarbutton id="deleteSelection" label="Delete"/>
-    </toolbar>
     <menubar>
+        <menu label="File">
+            <menupopup>
+                <menuitem label="Load" popup="filePopup"/>
+                <menuitem label="New" iconSclass="z-icon-file"/>
+                <menuitem label="Upload" iconSclass="z-icon-upload"/>
+                <menuitem label="Download" iconSclass="z-icon-file-excel-o"/>
+            </menupopup>
+        </menu>
         <menu label="Style">
             <menupopup>
                 <menuitem label="Bold" iconSclass="z-icon-bold"></menuitem>
                 <menuitem label="Borders" popup="borderPopup"/>
             </menupopup>
         </menu>
+        <menuitem iconSclass="z-icon-filter" popup="filterPopup"/>
+        <menuitem id="clearContents" iconSclass="z-icon-eraser"/>
+        <menuitem iconSclass="z-icon-usd" popup="formatPopup"/>
+        <menuitem iconSclass="z-icon-list-alt" popup="validationPopup"/>
+        <menuitem label="wrap"/>
+        <menuitem id="focusCell" label="Show Focus Cell"/>
+        <menuitem id="addMore" label="insert 100 row data"/>
+        <menuitem label="Fill" popup="fillPopup"/>
+        <menuitem id="showStyle" label="Show Style"/>
+        <menuitem id="hideSheet" label="Hide Sheet"/>
+        <menuitem id="deleteSelection" label="Delete"/>
     </menubar>
     <popup id="filePopup">
         <groupbox width="300px">

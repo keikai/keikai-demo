@@ -265,7 +265,7 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
 	/**
 	 * TODO implement by changing client URI after 8.5
 	 */
-	@Listen("onClick = toolbarbutton[iconSclass='z-icon-file']")
+	@Listen("onClick = menuitem[iconSclass='z-icon-file']")
 	public void newFile(){
 		try{
 			importFile("blank.xlsx");
@@ -274,7 +274,7 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
 		}
 	}
 
-	@Listen("onClick = toolbarbutton[iconSclass='z-icon-upload']")
+	@Listen("onClick = menuitem[iconSclass='z-icon-upload']")
 	public void openDialog(){
 		Fileupload.get(-1);
 	}
@@ -291,7 +291,7 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
 		spreadsheet.imports(name, event.getMedia().getStreamData());
 	}
 
-	@Listen("onClick = toolbarbutton[iconSclass='z-icon-file-excel-o']")
+	@Listen("onClick = menuitem[iconSclass='z-icon-file-excel-o']")
 	public void export() throws FileNotFoundException {
 		ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
 		spreadsheet.export(spreadsheet.getCurrentWorkbook(), outputStream).whenComplete((a, b) -> {
@@ -311,7 +311,7 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
 	/**
 	 * demonstrate how to change a font style
 	 */
-	@Listen("onClick = toolbarbutton[iconSclass='z-icon-bold']")
+	@Listen("onClick = menuitem[iconSclass='z-icon-bold']")
 	public void makeBold(){
 		Font font = selectedRange.createFont();
 		font.setBold(true);
@@ -356,7 +356,7 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
 		selectedRange.clearContents();
 	}
 	
-	@Listen("onClick = toolbarbutton[label='wrap']")
+	@Listen("onClick = menuitem[label='wrap']")
 	public void wrap(){
 		selectedRange.applyWrapText(true);
 	}	
