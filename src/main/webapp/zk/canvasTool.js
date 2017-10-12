@@ -1,5 +1,7 @@
 /**
 * Utility functions that help testing
+* canvas - HTMLCanvasElement
+* fileName - string
 */
 function saveCanvasAsPng(canvas, fileName){
     saveBase64AsFile(canvas.toDataURL("image/png"), fileName);

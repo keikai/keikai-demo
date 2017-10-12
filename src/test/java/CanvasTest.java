@@ -3,7 +3,6 @@ import java.io.*;
 import java.util.concurrent.TimeUnit;
 
 import javax.imageio.ImageIO;
-import javax.xml.bind.DatatypeConverter;
 
 import org.junit.*;
 import org.openqa.selenium.*;
@@ -62,9 +61,7 @@ public class CanvasTest {
 		pauseInSecond(1); //wait for importing
 		
 		String id = KeikaiTester.getKeikaiMain(driver).getAttribute("id");
-		String dataUrl = ((JavascriptExecutor)driver).executeScript("return jq('#"+id+"')[0].toDataURL()").toString();
-		byte[] imagedata = DatatypeConverter.parseBase64Binary(dataUrl.substring(dataUrl.indexOf(",") + 1));
-		BufferedImage bufferedImage = ImageIO.read(new ByteArrayInputStream(imagedata));
+		BufferedImage bufferedImage = KeikaiTester.generateCanvasImage(driver,id);
 		
 		BufferedImage expectedImage = ImageIO.read(new File("./answer/template.xlsx.png"));
 		if (!KeikaiTester.compareImages(expectedImage, bufferedImage)){
@@ -72,7 +69,7 @@ public class CanvasTest {
 			Assert.assertTrue("", false);
 		}
 	}
-	
+
 	private void pauseInSecond(int seconds){
 		try {
 			TimeUnit.SECONDS.sleep(seconds);

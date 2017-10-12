@@ -1,8 +1,16 @@
 import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
 
 import org.openqa.selenium.*;
 import org.openqa.selenium.support.ui.*;
 
+import javax.imageio.ImageIO;
+import javax.xml.bind.DatatypeConverter;
+
+/**
+ * a helper class for browser testing
+ */
 public class KeikaiTester {
 
 
@@ -46,5 +54,11 @@ public class KeikaiTester {
 			return false;
 		}
 		return true;
-	}    
+	}
+
+	public static BufferedImage generateCanvasImage(WebDriver driver, String id) throws IOException {
+		String dataUrl = ((JavascriptExecutor)driver).executeScript("return jq('#"+id+"')[0].toDataURL()").toString();
+		byte[] imagedata = DatatypeConverter.parseBase64Binary(dataUrl.substring(dataUrl.indexOf(",") + 1));
+		return ImageIO.read(new ByteArrayInputStream(imagedata));
+	}
 }
