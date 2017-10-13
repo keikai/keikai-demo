@@ -35,7 +35,6 @@ import com.keikai.client.api.*;
 import com.keikai.client.api.Borders.BorderIndex;
 import com.keikai.client.api.Fill.PatternFill;
 import com.keikai.client.api.Fill.PatternFill.PatternType;
-import com.keikai.client.api.Font.Underline;
 import com.keikai.client.api.Range.*;
 import com.keikai.client.api.event.*;
 import com.keikai.client.api.event.Events;
@@ -108,7 +107,7 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
 		super.doAfterCompose(root);
 //		enableSocketIOLog();
 		initSpreadsheet();
-		initControlArea();
+		initMenubar();
 		//enable server push to update UI according to keikai async response 
 		root.getDesktop().enableServerPush(true);
 		addEventListener();
@@ -192,8 +191,8 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
 		};
 		
 		//register spreadsheet event listeners
-		spreadsheet.addEventListener(Events.ON_NEW_SELECTION, listener::accept);
-//		spreadsheet.addEventListener(Events.ON_MOVE_FOCUS, listener::accept);
+		spreadsheet.addEventListener(Events.ON_NEW_SELECTION, listener::accept); //select by clicking
+		spreadsheet.addEventListener(Events.ON_UPDATE_SELECTION, listener::accept); //select by dragging
 
 		ExceptionalConsumer<RangeEvent> keyListener = (e) -> {
 			RangeKeyEvent keyEvent = (RangeKeyEvent) e;
@@ -213,6 +212,18 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
 		};
 		spreadsheet.addEventListener(Events.ON_KEY_DOWN, keyListener::accept);
 		spreadsheet.addEventListener(Events.ON_CELL_RIGHT_CLICK, mouseListener::accept);
+
+		spreadsheet.addEventListener(Events.ON_HYPERLINK_CLICK, (event) ->{
+			System.out.println(">>>"+event);
+			System.out.println(">>>"+event.getClass());
+		});
+
+		/* FIXME throw an exception
+		spreadsheet.addEventListener(Events.ON_SHEET_ACTIVATE, (event) ->{
+			System.out.println(">>>"+event);
+			System.out.println(">>>"+event.getClass());
+		});
+		 */
 	}
 
 	/**
@@ -231,8 +242,7 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
 		selectedRange = spreadsheet.getRange("A1");
 	}
 
-	@SuppressWarnings("unchecked")
-	private void initControlArea() {
+	private void initMenubar() {
 		borderIndexBox.setModel(new ListModelArray<>(BorderIndex.values()));
 		((Selectable<BorderIndex>)borderIndexBox.getModel()).addToSelection(BorderIndex.EdgeBottom);
 		
@@ -536,6 +546,11 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
 	@Listen("onClick = menuitem[label='Shift down']")
 	public void insertShiftDown(){
 		selectedRange.insert(InsertShiftDirection.ShiftDown, InsertFormatOrigin.LeftOrAbove);
+	}
+
+	@Listen("onClick = menuitem[label='Add Sheet']")
+	public void addSheet() throws ExecutionException, InterruptedException {
+		selectedRange.loadWorkbook().get().insertWorksheet();
 	}
 
 	private void enableSocketIOLog() {
