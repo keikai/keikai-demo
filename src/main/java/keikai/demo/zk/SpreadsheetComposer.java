@@ -191,8 +191,7 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
 		};
 		
 		//register spreadsheet event listeners
-		spreadsheet.addEventListener(Events.ON_NEW_SELECTION, listener::accept); //select by clicking
-		spreadsheet.addEventListener(Events.ON_UPDATE_SELECTION, listener::accept); //select by dragging
+		spreadsheet.addEventListener(Events.ON_SELECTION_CHANGE, listener::accept); 
 
 		ExceptionalConsumer<RangeEvent> keyListener = (e) -> {
 			RangeKeyEvent keyEvent = (RangeKeyEvent) e;
