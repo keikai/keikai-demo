@@ -1,8 +1,8 @@
 <zk xmlns:x="xhtml" xmlns:n="native" xmlns:ca="client/attribute">
     <menubar>
-        <menu label="File">
+        <menu label="File" iconSclass="z-icon-file">
             <menupopup>
-                <menuitem label="Load" popup="filePopup"/>
+                <menuitem label="Load" iconSclass="z-icon-list" popup="filePopup"/>
                 <menuitem label="New" iconSclass="z-icon-file"/>
                 <menuitem label="Upload" iconSclass="z-icon-upload"/>
                 <menuitem label="Download" iconSclass="z-icon-file-excel-o"/>
