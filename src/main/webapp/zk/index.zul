@@ -15,7 +15,7 @@
         			<label id="cellInfo" />
         	</hlayout>
         </hlayout>
-        <div id="myss" width="1200px" height="700px"></div>
+        <div id="myss" width="1300px" height="700px"></div>
 		<menupopup id="contextMenu">
 			<menuitem label="Delete row" id="deleteEntireRow"/>
 			<menuitem label="Delete column" id="deleteEntireColumn"/>
