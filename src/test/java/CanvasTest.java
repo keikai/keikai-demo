@@ -26,6 +26,16 @@ public class CanvasTest {
 		driver.manage().timeouts().implicitlyWait(1, TimeUnit.SECONDS);
 
 		webDriverWait = new WebDriverWait(driver, 5);
+		prepareOutputFolder();
+	}
+
+	private static void prepareOutputFolder() {
+		if (SCREENSHOT_FOLDER.exists()){
+			if (!SCREENSHOT_FOLDER.isDirectory()){
+				SCREENSHOT_FOLDER.delete();
+				SCREENSHOT_FOLDER.mkdir();
+			}
+		}
 	}
 
 	@AfterClass
@@ -55,7 +65,8 @@ public class CanvasTest {
 	public void loadFile() throws IOException{
 		driver.get(SERVER_URL+"/zk/index.zul");
 		KeikaiTester.waitKeikaiLoaded(webDriverWait);
-		driver.findElement(By.className("z-icon-list-alt")).click();
+		driver.findElement(By.className("z-icon-file")).click(); //File
+		driver.findElement(By.className("z-icon-list")).click(); //load
 		String fileName = "template.xlsx";
 		driver.findElement(By.name(fileName)).click();
 		pauseInSecond(1); //wait for importing

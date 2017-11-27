@@ -19,9 +19,9 @@ public class KeikaiTester {
 	}
 
 	/**
-	 * a canvas whose ID is [container_id]_inner_main
+	 * get the canvas whose ID is [container_id]_inner_main
 	 * @param driver
-	 * @return
+	 * @return canvas element
 	 */
 	static WebElement getKeikaiMain(WebDriver driver) {
 		return driver.findElement(By.xpath("//canvas[1]"));
@@ -36,7 +36,7 @@ public class KeikaiTester {
 	}
 
 	public static boolean compareImages(BufferedImage imgA, BufferedImage imgB) {
-		// The images must be the same size.
+		// The 2 images must be the same size.
 		if (imgA.getWidth() == imgB.getWidth() && imgA.getHeight() == imgB.getHeight()) {
 			int width = imgA.getWidth();
 			int height = imgA.getHeight();
@@ -56,9 +56,9 @@ public class KeikaiTester {
 		return true;
 	}
 
-	public static BufferedImage generateCanvasImage(WebDriver driver, String id) throws IOException {
-		String dataUrl = ((JavascriptExecutor)driver).executeScript("return jq('#"+id+"')[0].toDataURL()").toString();
-		byte[] imagedata = DatatypeConverter.parseBase64Binary(dataUrl.substring(dataUrl.indexOf(",") + 1));
-		return ImageIO.read(new ByteArrayInputStream(imagedata));
+	public static BufferedImage generateCanvasImage(WebDriver driver, String elementId) throws IOException {
+		String dataUrl = ((JavascriptExecutor)driver).executeScript("return jq('#"+elementId+"')[0].toDataURL()").toString();
+		byte[] imageBytes = DatatypeConverter.parseBase64Binary(dataUrl.substring(dataUrl.indexOf(",") + 1));
+		return ImageIO.read(new ByteArrayInputStream(imageBytes));
 	}
 }
