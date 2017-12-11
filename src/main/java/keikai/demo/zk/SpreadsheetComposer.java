@@ -14,12 +14,12 @@ package keikai.demo.zk;
 import io.keikai.client.api.*;
 import io.keikai.client.api.Font;
 import io.keikai.client.api.event.*;
+import io.keikai.client.api.event.Events;
 import io.keikai.util.*;
 import keikai.demo.Configuration;
 import org.zkoss.zhtml.Script;
 import org.zkoss.zk.ui.*;
 import org.zkoss.zk.ui.event.*;
-import org.zkoss.zk.ui.event.Events;
 import org.zkoss.zk.ui.select.*;
 import org.zkoss.zk.ui.select.annotation.*;
 import org.zkoss.zk.ui.util.*;
@@ -39,8 +39,8 @@ import java.util.function.*;
 import java.util.logging.*;
 
 import static io.keikai.client.api.Borders.*;
-import static io.keikai.client.api.Range.*;
 import static io.keikai.client.api.Fill.*;
+import static io.keikai.client.api.Range.*;
 
 
 /**
@@ -195,8 +195,7 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
 		};
 		
 		//register spreadsheet event listeners
-		//TODO what's different fro ON_SELECT
-		spreadsheet.addEventListener(Events.ON_SELECTION, listener::accept);
+		spreadsheet.addEventListener(Events.ON_SELECTION_CHANGE,  listener::accept);
 
 		ExceptionalConsumer<RangeEvent> keyListener = (e) -> {
 			RangeKeyEvent keyEvent = (RangeKeyEvent) e;
@@ -214,15 +213,14 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
 				contextMenu.open(mouseEvent.getPageX(), mouseEvent.getPageY());
 			}).run();
 		};
-		spreadsheet.addEventListener(Events.ON_CHANGE, keyListener::accept);
-		spreadsheet.addEventListener(Events.ON_RIGHT_CLICK, mouseListener::accept);
+		spreadsheet.addEventListener(Events.ON_KEY_DOWN, keyListener::accept);
+		spreadsheet.addEventListener(Events.ON_CELL_RIGHT_CLICK, mouseListener::accept);
 
-		/* FIXME no corresponding event
 		spreadsheet.addEventListener(Events.ON_HYPERLINK_CLICK, (event) ->{
 			System.out.println(">>>"+event);
 			System.out.println(">>>"+event.getClass());
 		});
-		*/
+
 		/* FIXME throw an exception
 		spreadsheet.addEventListener(Events.ON_SHEET_ACTIVATE, (event) ->{
 			System.out.println(">>>"+event);
@@ -330,9 +328,6 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
 	public void makeBold(){
 		Font font = selectedRange.createFont();
 		font.setBold(true);
-		selectedRange.applyFont(font);
-		selectedRange.applyRowHeightPx(200);
-		selectedRange.applyColumnWidthPx(200);
 		/* debug
 		range.loadCellStyle().thenAccept((style) ->{
 			style.getFont().setBold(true);
