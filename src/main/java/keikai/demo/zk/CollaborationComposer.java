@@ -11,15 +11,14 @@ Copyright (C) 2017 Potix Corporation. All Rights Reserved.
 */
 package keikai.demo.zk;
 
+import io.keikai.client.api.*;
+import keikai.demo.*;
+import org.zkoss.zhtml.*;
+import org.zkoss.zk.ui.*;
+import org.zkoss.zk.ui.select.*;
+
 import java.util.logging.*;
 
-import keikai.demo.Configuration;
-
-import org.zkoss.zhtml.Script;
-import org.zkoss.zk.ui.Component;
-import org.zkoss.zk.ui.select.SelectorComposer;
-
-import com.keikai.client.api.*;
 
 /**
  * FIXME this feature is not yet ready.

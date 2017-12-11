@@ -1,12 +1,11 @@
 package keikai.demo;
 
-import java.io.IOException;
+import io.keikai.client.api.*;
 
-import javax.servlet.http.HttpSession;
+import javax.servlet.http.*;
 import javax.websocket.*;
-import javax.websocket.server.ServerEndpoint;
-
-import com.keikai.client.api.Spreadsheet;
+import javax.websocket.server.*;
+import java.io.*;
 
 @ServerEndpoint(value = "/spreadsheet", configurator = SpreadsheetEndpointConfiguragor.class)
 public class SpreadsheetEndpoint {

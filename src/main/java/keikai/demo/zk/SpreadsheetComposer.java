@@ -11,33 +11,37 @@ Copyright (C) 2017 Potix Corporation. All Rights Reserved.
 */
 package keikai.demo.zk;
 
-import static com.keikai.util.Converter.numToAbc;
-
-import java.io.*;
-import java.util.Optional;
-import java.util.concurrent.ExecutionException;
-import java.util.function.*;
-import java.util.logging.*;
-
+import io.keikai.client.api.*;
+import io.keikai.client.api.Font;
+import io.keikai.client.api.event.*;
+import io.keikai.util.*;
 import keikai.demo.Configuration;
-
 import org.zkoss.zhtml.Script;
 import org.zkoss.zk.ui.*;
 import org.zkoss.zk.ui.event.*;
-import org.zkoss.zk.ui.select.SelectorComposer;
+import org.zkoss.zk.ui.event.Events;
+import org.zkoss.zk.ui.select.*;
 import org.zkoss.zk.ui.select.annotation.*;
-import org.zkoss.zk.ui.util.Clients;
-import org.zkoss.zkex.zul.Colorbox;
+import org.zkoss.zk.ui.util.*;
+import org.zkoss.zkex.zul.*;
+import org.zkoss.zul.Button;
+import org.zkoss.zul.Filedownload;
+import org.zkoss.zul.Fileupload;
 import org.zkoss.zul.*;
-import org.zkoss.zul.ext.Selectable;
+import org.zkoss.zul.Label;
+import org.zkoss.zul.ext.*;
 
-import com.keikai.client.api.*;
-import com.keikai.client.api.Borders.BorderIndex;
-import com.keikai.client.api.Fill.PatternFill;
-import com.keikai.client.api.Fill.PatternFill.PatternType;
-import com.keikai.client.api.Range.*;
-import com.keikai.client.api.event.*;
-import com.keikai.client.api.event.Events;
+import java.io.*;
+import java.lang.Object;
+import java.util.*;
+import java.util.concurrent.*;
+import java.util.function.*;
+import java.util.logging.*;
+
+import static io.keikai.client.api.Borders.*;
+import static io.keikai.client.api.Range.*;
+import static io.keikai.client.api.Fill.*;
+
 
 /**
  * Demonstrate API usage about: import, export, listen events, change styles, insert data,
@@ -191,7 +195,8 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
 		};
 		
 		//register spreadsheet event listeners
-		spreadsheet.addEventListener(Events.ON_SELECTION_CHANGE, listener::accept); 
+		//TODO what's different fro ON_SELECT
+		spreadsheet.addEventListener(Events.ON_SELECTION, listener::accept);
 
 		ExceptionalConsumer<RangeEvent> keyListener = (e) -> {
 			RangeKeyEvent keyEvent = (RangeKeyEvent) e;
@@ -209,14 +214,15 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
 				contextMenu.open(mouseEvent.getPageX(), mouseEvent.getPageY());
 			}).run();
 		};
-		spreadsheet.addEventListener(Events.ON_KEY_DOWN, keyListener::accept);
-		spreadsheet.addEventListener(Events.ON_CELL_RIGHT_CLICK, mouseListener::accept);
+		spreadsheet.addEventListener(Events.ON_CHANGE, keyListener::accept);
+		spreadsheet.addEventListener(Events.ON_RIGHT_CLICK, mouseListener::accept);
 
+		/* FIXME no corresponding event
 		spreadsheet.addEventListener(Events.ON_HYPERLINK_CLICK, (event) ->{
 			System.out.println(">>>"+event);
 			System.out.println(">>>"+event.getClass());
 		});
-
+		*/
 		/* FIXME throw an exception
 		spreadsheet.addEventListener(Events.ON_SHEET_ACTIVATE, (event) ->{
 			System.out.println(">>>"+event);
@@ -252,8 +258,8 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
 		((Selectable<AutoFilterOperator>) filterOperator.getModel()).addToSelection(AutoFilterOperator.FilterValues);
 		
 
-		fillPatternBox.setModel(new ListModelArray<>(PatternType.values()));
-		((Selectable<PatternType>)fillPatternBox.getModel()).addToSelection(PatternType.Solid);
+		fillPatternBox.setModel(new ListModelArray<>(PatternFill.PatternType.values()));
+		((Selectable<PatternFill.PatternType>)fillPatternBox.getModel()).addToSelection(PatternFill.PatternType.Solid);
 
 		fileListModel = new ListModelList(generateBookList());
 		filelistBox.setModel(fileListModel);
@@ -324,7 +330,9 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
 	public void makeBold(){
 		Font font = selectedRange.createFont();
 		font.setBold(true);
-		selectedRange.applyFont(font); 
+		selectedRange.applyFont(font);
+		selectedRange.applyRowHeightPx(200);
+		selectedRange.applyColumnWidthPx(200);
 		/* debug
 		range.loadCellStyle().thenAccept((style) ->{
 			style.getFont().setBold(true);
@@ -348,7 +356,7 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
 	@Listen("onClick = #applyFill")
 	public void changeFillPattern(Event e){
 		PatternFill fill = selectedRange.createPatternFill();
-		fill.setPatternType(((Selectable<PatternType>)fillPatternBox.getModel()).getSelection().iterator().next());
+		fill.setPatternType(((Selectable<PatternFill.PatternType>)fillPatternBox.getModel()).getSelection().iterator().next());
 		fill.setForegroundColor(((Colorbox)e.getTarget().getFellow("foregroundColorBox")).getValue());
 		fill.setBackgroundColor(((Colorbox)e.getTarget().getFellow("backgroundColorBox")).getValue());
 		selectedRange.applyFill(fill);
@@ -450,7 +458,7 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
 	private void insertDataByRow(int row) {
 		for (int j = 0; j < row; j++) {
 			for (int i = 0; i < MAX_COLUMN; i++) {
-				spreadsheet.getRange(currentDataRowIndex, i).applyValue(numToAbc(i) + (currentDataRowIndex + 1));
+				spreadsheet.getRange(currentDataRowIndex, i).applyValue(Converter.numToAbc(i) + (currentDataRowIndex + 1));
 			}
 			currentDataRowIndex++;
 		}

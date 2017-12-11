@@ -1,14 +1,13 @@
 package keikai.demo;
 
-import java.io.*;
+
+import io.keikai.client.api.*;
 
 import javax.servlet.*;
-import javax.servlet.http.HttpServletRequest;
-
-import com.keikai.client.api.*;
-import com.keikai.client.api.Border.Style;
-import com.keikai.client.api.Borders.BorderIndex;
-
+import javax.servlet.http.*;
+import java.io.*;
+import static io.keikai.client.api.Borders.*;
+import static io.keikai.client.api.Border.*;
 
 //@WebFilter(filterName = "DemoFilter",
 //urlPatterns = {"/javaClientDemo.jsp"})
@@ -31,7 +30,7 @@ public class DemoFilter implements Filter {
 
 
 	private void initSpreadsheet(ServletRequest request) {
-		spreadsheet = Keikai.newClient("http://114.34.173.199:8888");
+		spreadsheet = Keikai.newClient(Configuration.INTERNAL_KEIKAI_SERVER);
 		String jsAPI = spreadsheet.getURI("spreadsheet"); // you need to pass the DOM element id to it
 		request.setAttribute("jsAPI", jsAPI);
 		((HttpServletRequest)request).getSession().setAttribute(SPREADSHEET, spreadsheet);
