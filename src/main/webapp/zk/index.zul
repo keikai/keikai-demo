@@ -2,38 +2,8 @@
 <zk xmlns:x="xhtml" xmlns:n="native" xmlns:ca="client/attribute">
     <vlayout id="root" apply="keikai.demo.zk.SpreadsheetComposer" width="100%" height="800px">
 		<apply templateURI="toolbar.zul"/>
-   		<hlayout spacing="50px" style="border: 1px solid black;padding:2px">
-        	<hlayout >
-        			<label id="cell" value="A1"
-        				style="font-weight:bold;" />
-        			:
-        			<textbox id="cellValue"/>
-        			FocusTo:
-        			<textbox id="focusTo" constraint="no empty" value="A10"/>
-        			KeyCode: <label id="keyCode" />
-        			CellInfo:
-        			<label id="cellInfo" />
-        	</hlayout>
-        </hlayout>
-        <div id="myss" width="1300px" height="700px"></div>
-		<menupopup id="contextMenu">
-			<menuitem label="Delete row" id="deleteEntireRow"/>
-			<menuitem label="Delete column" id="deleteEntireColumn"/>
-			<menu label="Delete Cells">
-				<menupopup>
-					<menuitem label="Shift left" />
-					<menuitem label="Shift up" />
-				</menupopup>
-			</menu>
-			<menuitem label="Insert row" />
-			<menuitem label="Insert column" id="insertEntireColumn"/>
-			<menu label="Insert Cells">
-				<menupopup>
-					<menuitem label="Shift down" />
-					<menuitem label="Shift right" />
-				</menupopup>
-			</menu>
-			<menuitem label="Fill" popup="fillPopup"/>
-		</menupopup>
+		<apply templateURI="selectionStatusBar.zul"/>
+        <div id="myss" width="1300px" height="700px"/>
+		<apply templateURI="contextMenu.zul"/>
     </vlayout>
 </zk>

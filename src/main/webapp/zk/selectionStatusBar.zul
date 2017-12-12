@@ -1,0 +1,13 @@
+<hlayout spacing="50px" style="border: 1px solid black;padding:2px">
+    <hlayout >
+        <label id="cell" value="A1"
+               style="font-weight:bold;" />
+        :
+        <textbox id="cellValue"/>
+        FocusTo:
+        <textbox id="focusTo" constraint="no empty" value="A10"/>
+        KeyCode: <label id="keyCode" />
+        CellInfo:
+        <label id="cellInfo" />
+    </hlayout>
+</hlayout>
