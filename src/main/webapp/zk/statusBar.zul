@@ -1,0 +1,21 @@
+<zk xmlns:n="native">
+<style>
+    .header{
+        font: 18px bold;
+    }
+</style>
+<hlayout spacing="50px" style="border: 1px solid black;padding:2px">
+    <hlayout >
+        <label value="${serverAddress}"/>
+        <label id="cell" value="A1" sclass="header"/>
+        :
+        <textbox id="cellValue"/>
+        <n:span class="header">FocusTo:</n:span>
+        <textbox id="focusTo" constraint="no empty" value="A1"/>
+        <n:span class="header">KeyCode:</n:span>
+        <label id="keyCode" />
+        <n:span class="header">CellInfo:</n:span>
+        <label id="cellInfo" />
+    </hlayout>
+</hlayout>
+</zk>

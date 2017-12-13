@@ -12,7 +12,6 @@ Copyright (C) 2017 Potix Corporation. All Rights Reserved.
 package keikai.demo.zk;
 
 import io.keikai.client.api.*;
-import io.keikai.client.api.Font;
 import io.keikai.client.api.event.*;
 import io.keikai.client.api.event.Events;
 import io.keikai.util.*;
@@ -107,15 +106,25 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
 	final private File BOOK_FOLDER = new File(getPage().getDesktop().getWebApp().getRealPath("/book/"));
 
 	@Override
+	public void doBeforeComposeChildren(Component comp) throws Exception {
+		super.doBeforeComposeChildren(comp);
+		initStatusBar();
+	}
+
+	@Override
 	public void doAfterCompose(Component root) throws Exception {
 		super.doAfterCompose(root);
 //		enableSocketIOLog();
 		initSpreadsheet();
 		initMenubar();
-		//enable server push to update UI according to keikai async response 
+		//enable server push to update UI according to keikai async response
 		root.getDesktop().enableServerPush(true);
 		addEventListener();
 		initCellData();
+	}
+
+	private void initStatusBar() {
+		getPage().getDesktop().setAttribute("serverAddress", getKeikaiServerAddress());
 	}
 
 	private void initCellData() {
@@ -233,7 +242,7 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
 	 * get a spreadsheet java client and getUpdateRunner spreadsheet on a browser
 	 */
 	private void initSpreadsheet() {
-		spreadsheet = Keikai.newClient(Configuration.KEIKAI_SERVER); //connect to keikai server
+		spreadsheet = Keikai.newClient(getKeikaiServerAddress()); //connect to keikai server
 		//pass target element's id and get keikai script URI
 		String scriptUri = spreadsheet.getURI(getSelf().getFellow("myss").getUuid());
 		//load the initial script to getUpdateRunner spreadsheet at the client
@@ -243,6 +252,10 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
 		initialScript.setAsync(true);
 		initialScript.setPage(getPage());
 		selectedRange = spreadsheet.getRange("A1");
+	}
+
+	private String getKeikaiServerAddress() {
+		return Configuration.KEIKAI_SERVER;
 	}
 
 	private void initMenubar() {
@@ -477,20 +490,11 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
 		validation.setErrorMessage(errorMsgBox.getValue());
 		selectedRange.applyDataValidation(validation);
 		((Popup)e.getTarget().getFellow("validationPopup")).close();
-		createValidation();
 	}
 
-	private void createValidation(){
-		Range range = spreadsheet.getRange("a1");
-		DataValidation validation = range.createDataValidation();
-		validation.setFormula1("a,b,c");
-		validation.setType(DataValidation.Type.List); //currently-supported type
-		validation.setAlertStyle(DataValidation.AlertStyle.Stop);
-		validation.setInputTitle("title");
-		validation.setInputMessage("msg");
-		validation.setErrorTitle("err");
-		validation.setErrorMessage("err msg");
-		range.applyDataValidation(validation);
+	@Listen("onClick = #clearValidation")
+	public void clearValidation(Event e){
+		selectedRange.clearDataValidation();
 	}
 	
 	/**
