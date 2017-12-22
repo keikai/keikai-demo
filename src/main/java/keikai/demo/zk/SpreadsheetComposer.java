@@ -243,6 +243,7 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
 	 */
 	private void initSpreadsheet() {
 		spreadsheet = Keikai.newClient(getKeikaiServerAddress()); //connect to keikai server
+		getPage().getDesktop().setAttribute(SpreadsheetCleanUp.SPREADSHEET, spreadsheet); //make spreadsheet get closed
 		//pass target element's id and get keikai script URI
 		String scriptUri = spreadsheet.getURI(getSelf().getFellow("myss").getUuid());
 		//load the initial script to getUpdateRunner spreadsheet at the client
@@ -342,9 +343,9 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
 		Font font = selectedRange.createFont();
 		font.setBold(true);
 		/* debug
-		range.loadCellStyle().thenAccept((style) ->{
+		selectedRange.loadCellStyle().thenAccept((style) ->{
 			style.getFont().setBold(true);
-			range.applyCellStyle(style);
+			selectedRange.applyCellStyle(style);
 		});
 		CompletableFuture<List<RangeValue>> values = range.loadValues();
 		values.thenAccept((vals) -> {
@@ -514,11 +515,17 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
 		spreadsheet.loadActiveWorksheet().get().applyVisible(Worksheet.Visibility.Hidden);
 	}
 
+	/**
+	 * selected range should be entire rows
+	 */
 	@Listen("onClick = menuitem[label='Delete row']")
 	public void deleteEntireRow(){
 		selectedRange.delete(DeleteShiftDirection.ShiftUp);
 	}
 
+	/**
+	 * selected range should be entire columns
+	 */
 	@Listen("onClick = menuitem[label='Delete column']")
 	public void deleteEntireColumn(){
 		selectedRange.delete(DeleteShiftDirection.ShiftToLeft);
@@ -535,10 +542,17 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
 	}
 
 
+	/**
+	 * selected range should be entire columns
+	 */
 	@Listen("onClick = menuitem[label='Insert column']")
 	public void insertColumn(){
 		selectedRange.insert(InsertShiftDirection.ShiftToRight, InsertFormatOrigin.LeftOrAbove);
 	}
+
+	/**
+	 * selected range should be entire rows
+	 */
 	@Listen("onClick = menuitem[label='Insert row']")
 	public void insertRow(){
 		selectedRange.insert(InsertShiftDirection.ShiftDown, InsertFormatOrigin.LeftOrAbove);
