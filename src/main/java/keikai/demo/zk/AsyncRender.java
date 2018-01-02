@@ -1,8 +1,8 @@
 package keikai.demo.zk;
 
-import java.util.function.*;
-
 import org.zkoss.zk.ui.*;
+
+import java.util.function.Consumer;
 
 /**
  * In an asynchronous thread, to update ZK components requires activating a desktop first and deactivating after accessing ZK Components. (Please refer to <a href="https://www.zkoss.org/wiki/ZK_Developer%27s_Guide/Advanced_ZK/Long_Operations/Alternative_1:_Server_Push">ZK Developer's_Guide/Advanced_ZK/Long_Operations/Alternative_1:_Server_Push</a>)
@@ -14,7 +14,7 @@ public class AsyncRender {
 	/**
 	 * return a Consumer that executes UI update logic between activation / de-activation of a desktop. (Template Method pattern)
 	 * it should be called in an ZK event listener.
-	 * @param update a consumer function thats perform UI update logic
+	 * @param update a consumer function that performs UI update logic
 	 * @return a Consumer that executes UI update logic between activation / de-activation of a desktop
 	 */
 	static public <T> Consumer<T> getUpdateConsumer(Consumer<T> update){

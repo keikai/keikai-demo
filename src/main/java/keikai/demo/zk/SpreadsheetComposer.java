@@ -15,31 +15,26 @@ import io.keikai.client.api.*;
 import io.keikai.client.api.Fill.PatternFill;
 import io.keikai.client.api.event.*;
 import io.keikai.client.api.event.Events;
-import io.keikai.util.*;
+import io.keikai.util.Converter;
 import keikai.demo.Configuration;
+import org.apache.commons.io.FileUtils;
 import org.zkoss.zhtml.Script;
 import org.zkoss.zk.ui.*;
 import org.zkoss.zk.ui.event.*;
-import org.zkoss.zk.ui.select.*;
+import org.zkoss.zk.ui.select.SelectorComposer;
 import org.zkoss.zk.ui.select.annotation.*;
-import org.zkoss.zk.ui.util.*;
-import org.zkoss.zkex.zul.*;
-import org.zkoss.zul.Button;
-import org.zkoss.zul.Filedownload;
-import org.zkoss.zul.Fileupload;
+import org.zkoss.zk.ui.util.Clients;
+import org.zkoss.zkex.zul.Colorbox;
 import org.zkoss.zul.*;
-import org.zkoss.zul.Label;
-import org.zkoss.zul.ext.*;
+import org.zkoss.zul.ext.Selectable;
 
 import java.io.*;
-import java.lang.Object;
 import java.util.*;
-import java.util.concurrent.*;
+import java.util.concurrent.ExecutionException;
 import java.util.function.*;
 import java.util.logging.*;
 
-import static io.keikai.client.api.Borders.*;
-import static io.keikai.client.api.Fill.*;
+import static io.keikai.client.api.Borders.BorderIndex;
 import static io.keikai.client.api.Range.*;
 
 
@@ -304,19 +299,15 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
 
 	@Listen("onClick = menuitem[iconSclass='z-icon-upload']")
 	public void openDialog(){
-		Fileupload.get(-1);
+		Fileupload.get(new HashMap(), null, "Excel (xlsx) File Upload", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", -1, -1, true,null);
 	}
 	
 	@Listen("onUpload = #root")
 	public void upload(UploadEvent e) throws IOException {
 		String name = e.getMedia().getName();
-		spreadsheet.imports(name, e.getMedia().getStreamData());
-	}	
-	
-	@Listen("onUpload = #uploader")
-	public void uploadFile(UploadEvent event) throws IOException {
-		String name = event.getMedia().getName();
-		spreadsheet.imports(name, event.getMedia().getStreamData());
+		InputStream streamData = e.getMedia().getStreamData();
+		spreadsheet.imports(name, streamData);
+		FileUtils.copyInputStreamToFile(streamData, new File(BOOK_FOLDER, name));
 	}
 
 	@Listen("onClick = menuitem[iconSclass='z-icon-file-excel-o']")
