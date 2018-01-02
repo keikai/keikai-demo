@@ -6,6 +6,7 @@
 	<version>0.0.1-SNAPSHOT</version>
 	<properties>
 		<zk.version>8.0.5</zk.version>
+		<keikai.version>0.8.0-Eval-SNAPSHOT</keikai.version>
 		<selenium.version>2.53.1</selenium.version>
 		<maven.build.timestamp.format>yyyy-MM-dd</maven.build.timestamp.format>
 		<packname>-${project.version}-FL-${maven.build.timestamp}</packname>
@@ -47,7 +48,7 @@
 		<dependency>
 			<groupId>io.keikai</groupId>
 			<artifactId>keikai-java-client</artifactId>
-			<version>0.8.0-Eval-SNAPSHOT</version>
+			<version>${keikai.version}</version>
 		</dependency>
         <dependency>
             <groupId>org.zkoss.zk</groupId>

@@ -30,6 +30,8 @@
         <menuitem label="Fill" popup="fillPopup"/>
         <menuitem id="showStyle" label="Show Style"/>
         <menuitem id="deleteSelection" label="Delete"/>
+        <menuitem id="lockSelection" label="Lock Selection"/>
+        <menuitem id="unlockSelection" label="Unlock Selection"/>
     </menubar>
     <popup id="filePopup">
         <groupbox width="300px">
