@@ -66,13 +66,7 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
 	private Intbox filterField;
 	@Wire
 	private Textbox filterCriteria1;
-	@Wire
-	private Radiogroup filterDropDown;
-	@Wire
-	private Button filterBtn;
 
-	@Wire
-	private Button applyFont;
 	@Wire
 	private Label cellInfo;
 	@Wire("#cellValue")
@@ -110,7 +104,7 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
 	@Override
 	public void doAfterCompose(Component root) throws Exception {
 		super.doAfterCompose(root);
-//		enableSocketIOLog();
+		enableSocketIOLog();
 		initSpreadsheet();
 		initMenubar();
 		//enable server push to update UI according to keikai async response
@@ -286,7 +280,7 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
 	}
 
 	/**
-	 * TODO implement by changing client URI after 8.5
+	 * TODO Can't import a book more than once, we should delete the previous book first.
 	 */
 	@Listen("onClick = menuitem[iconSclass='z-icon-file']")
 	public void newFile(){

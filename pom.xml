@@ -10,6 +10,8 @@
 		<selenium.version>2.53.1</selenium.version>
 		<maven.build.timestamp.format>yyyy-MM-dd</maven.build.timestamp.format>
 		<packname>-${project.version}-FL-${maven.build.timestamp}</packname>
+		<maven.compiler.source>1.8</maven.compiler.source>
+		<maven.compiler.target>1.8</maven.compiler.target>
 	</properties>
 	<packaging>war</packaging>
 	<name>The java-client-demo Project</name>
@@ -115,22 +117,6 @@
 					</webAppConfig>
 					<scanIntervalSeconds>5</scanIntervalSeconds>
 				</configuration>
-			</plugin>
-			<!-- Compile java -->
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-compiler-plugin</artifactId>
-				<version>3.3</version>
-				<configuration>
-					<source>1.8</source>
-					<target>1.8</target>
-				</configuration>
-			</plugin>
-			<!-- Build war -->
-			<plugin>
-				<artifactId>maven-war-plugin</artifactId>
-				<groupId>org.apache.maven.plugins</groupId>
-				<version>2.1.1</version>
 			</plugin>
 			<!-- Pack zips -->
 			<plugin>
