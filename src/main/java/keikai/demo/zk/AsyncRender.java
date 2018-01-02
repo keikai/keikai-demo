@@ -58,8 +58,12 @@ public class AsyncRender {
 	static public Runnable getUpdateRunner(Desktop desktop, Runnable update){
 		return () -> {
 			try {
-				Executions.activate(desktop);
-				update.run();;
+				if(desktop.isAlive()){
+					Executions.activate(desktop);
+					update.run();
+				}else{
+					return;
+				}
 			} catch (Exception e) {
 				throw new RuntimeException(e);
 			} finally {
