@@ -12,6 +12,7 @@ Copyright (C) 2017 Potix Corporation. All Rights Reserved.
 package keikai.demo.zk;
 
 import io.keikai.client.api.*;
+import io.keikai.client.api.Fill.PatternFill;
 import io.keikai.client.api.event.*;
 import io.keikai.client.api.event.Events;
 import io.keikai.util.*;
@@ -508,6 +509,30 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
 		CellStyle style = selectedRange.loadCellStyle().get();
 		Clients.showNotification(style.toString()+ "," + style.getProtection().isLocked());
 
+	}
+
+	@Listen("onClick = #lockSelection")
+	public void lockSelection() throws ExecutionException, InterruptedException {
+		PatternFill fill = selectedRange.createPatternFill();
+		fill.setBackgroundColor("#00ff00");
+		selectedRange.applyFill(fill);
+		CellStyle style = selectedRange.createCellStyle();
+		Protection protection = style.createProtection();
+		protection.setLocked(true);
+		style.setProtection(protection);
+		selectedRange.applyCellStyle(style);
+	}
+	
+	@Listen("onClick = #unlockSelection")
+	public void unlockSelection() throws ExecutionException, InterruptedException {
+		PatternFill fill = selectedRange.createPatternFill();
+		fill.setBackgroundColor("#00ff00");
+		selectedRange.applyFill(fill);
+		CellStyle style = selectedRange.createCellStyle();
+		Protection protection = style.createProtection();
+		protection.setLocked(false);
+		style.setProtection(protection);
+		selectedRange.applyCellStyle(style);
 	}
 
 	@Listen("onClick = #hideSheet")
