@@ -39,7 +39,8 @@ import static io.keikai.client.api.Range.*;
 
 
 /**
- * Demonstrate API usage about: import, export, listen events, change styles, insert data,
+ * Demonstrate API usage about: import, export, listen events, change styles, insert data <br>
+ * * Accept keikai server IP from URL like http://localhost:8080/java-client-demo/zk/index.zul?server=10.1.3.201:7777
  * @author Hawk
  */
 public class SpreadsheetComposer extends SelectorComposer<Component> {
@@ -246,7 +247,8 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
 	}
 
 	private String getKeikaiServerAddress() {
-		return Configuration.KEIKAI_SERVER;
+	    String ip = Executions.getCurrent().getParameter("server");
+        return ip == null ? Configuration.KEIKAI_SERVER : "http://"+ip;
 	}
 
 	private void initMenubar() {
