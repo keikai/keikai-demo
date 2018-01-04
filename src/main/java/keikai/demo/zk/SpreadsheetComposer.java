@@ -44,7 +44,8 @@ import static io.keikai.client.api.Range.*;
  * @author Hawk
  */
 public class SpreadsheetComposer extends SelectorComposer<Component> {
-	private static final int MAX_COLUMN = 10; //the max column to insert data
+    public static final String BLANK_XLSX = "blank.xlsx";
+    private static final int MAX_COLUMN = 10; //the max column to insert data
 	private Spreadsheet spreadsheet;
 	private Range selectedRange; //cell reference
 
@@ -274,20 +275,26 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
 	}
 
 	@Listen("onSelect = #filelistBox")
-	public void loadServerFile() throws IOException{
+	public void loadServerFile() throws IOException, ExecutionException, InterruptedException {
 		filePopup.close();
 		String fileName = fileListModel.getSelection().iterator().next();
+        if (spreadsheet.containsWorkbook(fileName).get()){
+            spreadsheet.deleteWorkbook(fileName);
+        }
 		importFile(fileName);
 		fileListModel.clearSelection();
 	}
 
 	/**
-	 * TODO Can't import a book more than once, we should delete the previous book first.
+	 * Can't import a book more than once, we should delete the previous book first.
 	 */
 	@Listen("onClick = menuitem[iconSclass='z-icon-file']")
-	public void newFile(){
+	public void newFile() throws ExecutionException, InterruptedException {
 		try{
-			importFile("blank.xlsx");
+		    if (spreadsheet.containsWorkbook(BLANK_XLSX).get()){
+		        spreadsheet.deleteWorkbook(BLANK_XLSX);
+            }
+			importFile(BLANK_XLSX);
 		}catch(IOException e){
 			Clients.showNotification(e.getMessage());
 		}
