@@ -18,4 +18,7 @@
         <label id="cellInfo" />
     </hlayout>
 </hlayout>
+<popup id="info">
+    <label/>
+</popup>
 </zk>

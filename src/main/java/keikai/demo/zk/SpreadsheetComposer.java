@@ -93,6 +93,9 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
 	@Wire
 	private Textbox errorMsgBox;
 	private int currentDataRowIndex = 0; //current row index to insert data
+
+	@Wire
+	private Popup info;
 	
 	private ListModelList<String> fileListModel;
 	final private File BOOK_FOLDER = new File(getPage().getDesktop().getWebApp().getRealPath("/book/"));
@@ -501,8 +504,8 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
 	@Listen("onClick = #showStyle")
 	public void showCellStyle() throws InterruptedException, ExecutionException{
 		CellStyle style = selectedRange.loadCellStyle().get();
-		Clients.showNotification(style.toString()+ "," + style.getProtection().isLocked());
-
+		((Label) info.getFirstChild()).setValue(style.toString());
+		info.open(info.getPreviousSibling(), "after_center");
 	}
 
 	@Listen("onClick = #lockSelection")
