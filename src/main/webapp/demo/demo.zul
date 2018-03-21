@@ -1,6 +1,7 @@
 <?script src="canvasTool.js" ?>
 <zk xmlns:n="native" >
     <vlayout id="root" apply="keikai.demo.zk.DemoComposer" width="100%" height="800px">
+        <div width="100%" style="text-align: center"><label id="fileNameLabel"/></div>
 		<apply templateURI="toolbar.zul"/>
         <div id="myss" width="100%" height="700px" />
     </vlayout>

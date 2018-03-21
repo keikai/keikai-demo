@@ -42,6 +42,8 @@ public class DemoComposer extends SelectorComposer<Component> {
 	private Listbox filelistBox;
 	@Wire
 	private Popup filePopup;
+	@Wire
+	private Label fileNameLabel;
 
 	private int currentDataRowIndex = 0; //current row index to insert data
 
@@ -64,6 +66,7 @@ public class DemoComposer extends SelectorComposer<Component> {
 	private void importFile(String fileName) throws IOException {
 		File template = new File(BOOK_FOLDER, fileName);
 		spreadsheet.imports(fileName, template);
+		fileNameLabel.setValue(fileName);
 	}
 
 	/**
