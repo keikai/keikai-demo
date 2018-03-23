@@ -49,7 +49,7 @@ public class DemoComposer extends SelectorComposer<Component> {
 
 
 	private ListModelList<String> fileListModel;
-	final private File BOOK_FOLDER = new File(getPage().getDesktop().getWebApp().getRealPath("/book/"));
+	final private File BOOK_FOLDER = new File(getPage().getDesktop().getWebApp().getRealPath("/book/demo"));
 
 	@Override
 	public void doAfterCompose(Component root) throws Exception {
@@ -59,13 +59,15 @@ public class DemoComposer extends SelectorComposer<Component> {
 		initMenubar();
 		//enable server push to update UI according to keikai async response
 		root.getDesktop().enableServerPush(true);
-
 	}
 
 
 	private void importFile(String fileName) throws IOException {
 		File template = new File(BOOK_FOLDER, fileName);
-		spreadsheet.imports(fileName, template);
+		final Desktop desktop = getPage().getDesktop();
+		spreadsheet.imports(fileName, template).whenComplete(((workbook, throwable) -> {
+			AsyncRender.getUpdateRunner(desktop, ()->{Clients.clearBusy();}).run();
+		}));
 		fileNameLabel.setValue(fileName);
 	}
 
@@ -108,6 +110,7 @@ public class DemoComposer extends SelectorComposer<Component> {
         }
 		importFile(fileName);
 		fileListModel.clearSelection();
+		Clients.showBusy("Loading...");
 	}
 
 	/**
