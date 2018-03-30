@@ -12,6 +12,7 @@ Copyright (C) 2017 Potix Corporation. All Rights Reserved.
 package keikai.demo.zk;
 
 import io.keikai.client.api.*;
+import io.keikai.client.api.event.*;
 import keikai.demo.Configuration;
 import org.apache.commons.io.FileUtils;
 import org.zkoss.zhtml.Script;
@@ -23,7 +24,7 @@ import org.zkoss.zk.ui.util.Clients;
 import org.zkoss.zul.*;
 
 import java.io.*;
-import java.util.HashMap;
+import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.function.*;
 import java.util.logging.*;
@@ -37,6 +38,7 @@ public class DemoComposer extends SelectorComposer<Component> {
     public static final String BLANK_XLSX = "blank.xlsx";
     private static final int MAX_COLUMN = 10; //the max column to insert data
 	private Spreadsheet spreadsheet;
+	private Range selectedRange;
 
 	@Wire
 	private Listbox filelistBox;
@@ -44,6 +46,8 @@ public class DemoComposer extends SelectorComposer<Component> {
 	private Popup filePopup;
 	@Wire
 	private Label fileNameLabel;
+	@Wire
+	private Textbox cellValueBox;
 
 	private int currentDataRowIndex = 0; //current row index to insert data
 
@@ -57,6 +61,7 @@ public class DemoComposer extends SelectorComposer<Component> {
 //		enableSocketIOLog();
 		initSpreadsheet();
 		initMenubar();
+		initFormulaBar();
 		//enable server push to update UI according to keikai async response
 		root.getDesktop().enableServerPush(true);
 	}
@@ -99,6 +104,33 @@ public class DemoComposer extends SelectorComposer<Component> {
 
 	private String[] generateBookList() {
 		return BOOK_FOLDER.list();
+	}
+
+	/*
+	 * register an event listener to show cell value and address on the formula bar
+	 */
+	private void initFormulaBar() {
+		final Desktop desktop = getSelf().getDesktop();
+		ExceptionalConsumer<RangeEvent> listener = (e) -> {
+			RangeSelectEvent event = (RangeSelectEvent) e;
+			selectedRange = event.getActiveSelection();
+			//display the current cell value/formula
+			event.getRange().loadValue().thenAccept((rangeValue) -> {
+				AsyncRender.getUpdateRunner(desktop, () -> {
+					// ignore validation on null value
+					if (rangeValue.getCellValue().isFormula()) {
+						cellValueBox.setRawValue(rangeValue.getCellValue().getFormula());
+					} else {
+						cellValueBox.setRawValue(rangeValue.getValue());
+					}
+				}).run();
+			});
+			//display the current cell address
+			AsyncRender.getUpdateRunner(desktop, () -> {
+				((Label) getSelf().getFellow("cellAddress")).setValue(selectedRange.getA1Notation());
+			}).run();
+		};
+		spreadsheet.addEventListener(Events.ON_SELECTION_CHANGE,  listener::accept);
 	}
 
 	@Listen("onSelect = #filelistBox")

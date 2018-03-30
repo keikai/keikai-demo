@@ -1,5 +1,5 @@
-<zk xmlns:x="xhtml" xmlns:n="native" xmlns:ca="client/attribute">
-    <menubar>
+<zk>
+    <menubar >
         <menu label="File" iconSclass="z-icon-file">
             <menupopup>
                 <menuitem label="Load" iconSclass="z-icon-list" popup="filePopup"/>
@@ -9,6 +9,10 @@
             </menupopup>
         </menu>
     </menubar>
+    <div sclass="formulaBar">
+        <label id="cellAddress" value="A1" width="100px" style="display: inline-block"/>
+        <textbox id="cellValueBox" hflex="1" readonly="true"/>
+    </div>
     <popup id="filePopup">
         <groupbox width="300px">
             <caption label="File List"/>
