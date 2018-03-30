@@ -89,7 +89,7 @@ public class DemoComposer extends SelectorComposer<Component> {
 
 	private String getKeikaiServerAddress() {
 	    String ip = Executions.getCurrent().getParameter("server");
-        return ip == null ? Configuration.INTERNAL_KEIKAI_SERVER : "http://"+ip;
+        return ip == null ? Configuration.DEMO_SERVER : "http://"+ip;
 	}
 
 	private void initMenubar() {
