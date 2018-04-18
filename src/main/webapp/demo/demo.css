@@ -1,0 +1,15 @@
+
+/* fix misalign between the menu icon and menu label*/
+.z-menu-content i{
+    vertical-align: baseline;
+}
+
+.formulaBar{
+    padding: 3px 10px 3px 15px;
+}
+
+.flex-container {
+  display: flex;
+  flex-flow: row wrap;
+  height: 50px;
+}
