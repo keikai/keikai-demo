@@ -109,7 +109,7 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
 	@Override
 	public void doAfterCompose(Component root) throws Exception {
 		super.doAfterCompose(root);
-		enableSocketIOLog();
+//		enableSocketIOLog();
 		initSpreadsheet();
 		initMenubar();
 		//enable server push to update UI according to keikai async response
@@ -154,7 +154,10 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
 
 	private void importFile(String fileName) throws IOException {
 		File template = new File(BOOK_FOLDER, fileName);
-		spreadsheet.imports(fileName, template);
+		final Desktop desktop = getPage().getDesktop();
+		spreadsheet.imports(fileName, template).whenComplete(((workbook, throwable) -> {
+			AsyncRender.getUpdateRunner(desktop, ()->{Clients.clearBusy();}).run();
+		}));
 	}
 
 	/**
@@ -271,6 +274,7 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
 
 		fileListModel = new ListModelList(generateBookList());
 		filelistBox.setModel(fileListModel);
+
 	}
 
 	private String[] generateBookList() {
@@ -286,6 +290,7 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
         }
 		importFile(fileName);
 		fileListModel.clearSelection();
+		Clients.showBusy("Loading...");
 	}
 
 	/**
