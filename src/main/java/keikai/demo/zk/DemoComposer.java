@@ -48,12 +48,14 @@ public class DemoComposer extends SelectorComposer<Component> {
 	private Label fileNameLabel;
 	@Wire
 	private Textbox cellValueBox;
+	@Wire
+	private Div fileNameBox;
 
 	private int currentDataRowIndex = 0; //current row index to insert data
 
 
 	private ListModelList<String> fileListModel;
-	final private File BOOK_FOLDER = new File(getPage().getDesktop().getWebApp().getRealPath("/book/demo"));
+	final File BOOK_FOLDER = new File(getPage().getDesktop().getWebApp().getRealPath("/book/demo"));
 
 	@Override
 	public void doAfterCompose(Component root) throws Exception {
@@ -71,7 +73,7 @@ public class DemoComposer extends SelectorComposer<Component> {
 		File template = new File(BOOK_FOLDER, fileName);
 		final Desktop desktop = getPage().getDesktop();
 		spreadsheet.imports(fileName, template).whenComplete(((workbook, throwable) -> {
-			AsyncRender.getUpdateRunner(desktop, ()->{Clients.clearBusy();}).run();
+			AsyncRender.getUpdateRunner(desktop, ()->{Clients.clearBusy(fileNameBox);}).run();
 		}));
 		fileNameLabel.setValue(fileName);
 	}
@@ -142,7 +144,7 @@ public class DemoComposer extends SelectorComposer<Component> {
         }
 		importFile(fileName);
 		fileListModel.clearSelection();
-		Clients.showBusy("Loading...");
+		Clients.showBusy(fileNameBox, "Loading...");
 	}
 
 	/**
