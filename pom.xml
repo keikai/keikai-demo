@@ -5,7 +5,6 @@
 	<artifactId>java-client-demo</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<properties>
-		<!--<zk.version>8.0.5</zk.version>-->
 		<zk.version>8.5.1</zk.version>
 		<keikai.version>0.8.0-SNAPSHOT</keikai.version>
 		<selenium.version>2.53.1</selenium.version>
@@ -67,7 +66,35 @@
             <groupId>org.zkoss.zk</groupId>
             <artifactId>zuti</artifactId>
             <version>${zk.version}</version>
-        </dependency>       
+        </dependency>
+		<dependency>
+			<groupId>org.zkoss.chart</groupId>
+			<artifactId>zkcharts</artifactId>
+			<version>3.0.1</version>
+		</dependency>
+		<dependency>
+			<groupId>org.zkoss.zkforge</groupId>
+			<artifactId>gmapsz</artifactId>
+			<version>3.0.4</version>
+			<exclusions>
+				<exclusion>
+					<artifactId>zweb</artifactId>
+					<groupId>org.zkoss.common</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>zk</artifactId>
+					<groupId>org.zkoss.zk</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>zul</artifactId>
+					<groupId>org.zkoss.common</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>zcommon</artifactId>
+					<groupId>org.zkoss.common</groupId>
+				</exclusion>
+			</exclusions>
+		</dependency>
 		<dependency>
 			<groupId>javax.servlet</groupId>
 			<artifactId>javax.servlet-api</artifactId>
