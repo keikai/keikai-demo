@@ -4,21 +4,26 @@ import io.keikai.client.api.*;
 import io.keikai.client.api.event.Events;
 import keikai.demo.Configuration;
 import org.zkoss.chart.Charts;
+import org.zkoss.chart.model.*;
 import org.zkoss.gmaps.*;
 import org.zkoss.zhtml.Script;
 import org.zkoss.zk.ui.*;
 import org.zkoss.zk.ui.select.SelectorComposer;
 import org.zkoss.zk.ui.select.annotation.Wire;
+import org.zkoss.zul.Div;
 
 import java.io.File;
 import java.text.NumberFormat;
 import java.text.*;
+import java.util.concurrent.*;
 
 public class IntegrationController extends SelectorComposer<Component> {
 	
 	private Spreadsheet fluSpreadsheet;
 	private Range selectedRange;
 
+	@Wire
+	private Div spreadsheetBlock;
 	@Wire
 	private Gmaps fluMap;
 	
@@ -34,13 +39,16 @@ public class IntegrationController extends SelectorComposer<Component> {
 
 	public void doAfterCompose(Component comp) throws Exception {
 		super.doAfterCompose(comp);
+		getPage().getDesktop().enableServerPush(true);
+		initChart();
 		initSpreadsheet();
 		registerListeners();
 		gmarkerArray = new Gmarker[NUMBER_OF_GMARKER_ROW];
-//		initChart();
-//		updateChart();
+//		refreshChartData(); //after import
 //		initMap();
 	}
+
+
 
 
 	/* get a spreadsheet java client and getUpdateRunner spreadsheet on a browser
@@ -49,7 +57,7 @@ public class IntegrationController extends SelectorComposer<Component> {
 		fluSpreadsheet = Keikai.newClient(Configuration.DEMO_SERVER); //connect to keikai server
 		getPage().getDesktop().setAttribute(SpreadsheetCleanUp.SPREADSHEET, fluSpreadsheet); //make spreadsheet get closed
 		//pass target element's id and get keikai script URI
-		String scriptUri = fluSpreadsheet.getURI(getSelf().getFellow("fluSpreadsheet").getUuid());
+		String scriptUri = fluSpreadsheet.getURI(spreadsheetBlock.getUuid());
 		//load the initial script to getUpdateRunner spreadsheet at the client
 		Script initialScript = new Script();
 		initialScript.setSrc(scriptUri);
@@ -60,13 +68,52 @@ public class IntegrationController extends SelectorComposer<Component> {
 
 		String fileName = "swineFlu.xlsx";
 		File file = new File(WebApps.getCurrent().getRealPath(Configuration.DEMO_BOOK_PATH), fileName);
-		fluSpreadsheet.imports(fileName, file);
+		final Desktop desktop = getPage().getDesktop();
+		fluSpreadsheet.imports(fileName, file).whenComplete((workbook, throwable) -> {
+			AsyncRender.getUpdateRunner(desktop, () ->{
+				try {
+					this.refreshChartData();
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			}).run();
+		});
 	}
 
 	private void registerListeners() {
 		fluSpreadsheet.addEventListener(Events.ON_CELL_CLICK, (event) ->{
 
 		});
+	}
+
+
+	private void initChart() {
+		if (fluChart == null)
+			return;
+		fluChart.setTitle("");
+		fluChart.getExporting().setEnabled(false);
+		fluChart.getPlotOptions().getPie().getDataLabels().setEnabled(false);
+		fluChart.getPlotOptions().getPie().setShowInLegend(true);
+		fluChart.setModel(new DefaultPieModel());
+	}
+
+	private void refreshChartData() throws ExecutionException, InterruptedException {
+
+		PieModel model = (PieModel) fluChart.getModel();
+		model.clear();
+
+		for (int row = 45; row < 53; row++) {
+			CompletableFuture<RangeValue> rangeFuture = fluSpreadsheet.getRange(row, 0).loadValue();
+
+			rangeFuture.thenCombineAsync(fluSpreadsheet.getRange(row, 1).loadValue(), (rangeValue1, rangeValue2) -> {
+						String name = rangeValue1.getCellValue().getStringValue();
+						Double nCases = rangeValue2.getCellValue().getDoubleValue();
+						AsyncRender.getUpdateRunner(getPage().getDesktop(), () ->{
+							model.setValue(name, nCases);
+						}).run();
+						return rangeFuture; //TODO might be incorrect return value
+					});
+		}
 	}
 
 	/*
@@ -146,7 +193,7 @@ public class IntegrationController extends SelectorComposer<Component> {
 			updateRow(row, true);
 		}
 		if (col == 1) {
-			updateChart();
+			refreshChartData();
 		}
 	}
 	
@@ -207,35 +254,7 @@ public class IntegrationController extends SelectorComposer<Component> {
 		}
 	}
 
-	private void initChart() {
-		if (fluChart == null)
-			return;
-		fluChart.setTitle("");
-		fluChart.getExporting().setEnabled(false);
-		fluChart.getPlotOptions().getPie().getDataLabels().setEnabled(false);
-		fluChart.getPlotOptions().getPie().setShowInLegend(true);
-		fluChart.setModel(new DefaultPieModel());
-	}
 
-	private void updateChart() {
-		if (fluChart == null || sheet == null)
-			return;
-
-		PieModel model = (PieModel) fluChart.getModel();
-		model.clear();
-		for (int row = 45; row < 53; row++) {
-			String name = Ranges.range(sheet, row, 0).getCellData().isBlank() ? ""
-					: Ranges.range(sheet, row, 0).getCellEditText();
-			CellData cd = Ranges.range(sheet, row, 1).getCellData();
-			Double value;
-			if (cd.getResultType() == CellType.NUMERIC) {
-				value = (Double) cd.getValue();
-			} else {
-				value = 0D;
-			}
-			model.setValue(name, value);
-		}
-	}
 
 	private void updateRow(int row, boolean evalValue) throws ParseException {
 		if (fluMap == null || sheet == null
