@@ -42,7 +42,6 @@ public class IntegrationController extends SelectorComposer<Component> {
 		initSpreadsheet();
 		registerListeners();
 		gmarkerArray = new Gmarker[NUMBER_OF_GMARKER_ROW];
-		initMapMarkers();
 	}
 
 
@@ -69,7 +68,8 @@ public class IntegrationController extends SelectorComposer<Component> {
 		fluSpreadsheet.imports(fileName, file).whenComplete((workbook, throwable) -> {
 			AsyncRender.getUpdateRunner(desktop, () ->{
 				try {
-					this.refreshChartData();
+					refreshChartData();
+					initMapMarkers();
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
