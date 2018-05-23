@@ -55,7 +55,7 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
 	private Selectbox borderLineStyleBox;
 	@Wire
 	private Listbox filelistBox;
-	
+
 	@Wire
 	private Label keyCode;
 
@@ -78,7 +78,7 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
 	@Wire
 	private Popup filePopup;
 
-	@Wire 
+	@Wire
 	private Popup contextMenu;
 	@Wire
 	private Selectbox fillPatternBox;
@@ -96,7 +96,7 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
 
 	@Wire
 	private Popup info;
-	
+
 	private ListModelList<String> fileListModel;
 	final private File BOOK_FOLDER = new File(getPage().getDesktop().getWebApp().getRealPath("/book/"));
 
@@ -197,7 +197,7 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
 				((Label) getSelf().getFellow("cell")).setValue(selectedRange.getA1Notation());
 			}).run();
 		};
-		
+
 		//register spreadsheet event listeners
 		spreadsheet.addEventListener(Events.ON_SELECTION_CHANGE,  listener::accept);
 
@@ -258,13 +258,13 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
 	private void initMenubar() {
 		borderIndexBox.setModel(new ListModelArray<>(BorderIndex.values()));
 		((Selectable<BorderIndex>)borderIndexBox.getModel()).addToSelection(BorderIndex.EdgeBottom);
-		
+
 		borderLineStyleBox.setModel(new ListModelArray<>(Border.Style.values()));
 		((Selectable<Border.Style>)borderLineStyleBox.getModel()).addToSelection(Border.Style.Thin);
-		
+
 		filterOperator.setModel(new ListModelArray<>(AutoFilterOperator.values()));
 		((Selectable<AutoFilterOperator>) filterOperator.getModel()).addToSelection(AutoFilterOperator.FilterValues);
-		
+
 
 		fillPatternBox.setModel(new ListModelArray<>(PatternFill.PatternType.values()));
 		((Selectable<PatternFill.PatternType>)fillPatternBox.getModel()).addToSelection(PatternFill.PatternType.Solid);
@@ -307,7 +307,7 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
 	public void openDialog(){
 		Fileupload.get(new HashMap(), null, "Excel (xlsx) File Upload", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", -1, -1, true,null);
 	}
-	
+
 	@Listen("onUpload = #root")
 	public void upload(UploadEvent e) throws IOException {
 		String name = e.getMedia().getName();
@@ -368,22 +368,22 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
 		fill.setBackgroundColor(((Colorbox)e.getTarget().getFellow("backgroundColorBox")).getValue());
 		selectedRange.applyFill(fill);
 	}
-	
+
 	@Listen("onChange = #cellValue")
 	public void onClick(Event event) {
 		String cellReference = ((Label) getSelf().getFellow("cell")).getValue();
 		spreadsheet.getRange(cellReference).applyValue(cellValueBox.getValue());
 	}
-	
+
 	@Listen("onClick = #clearContents")
 	public void clearContents(Event event) {
 		selectedRange.clearContents();
 	}
-	
+
 	@Listen("onClick = menuitem[label='wrap']")
 	public void wrap(){
 		selectedRange.applyWrapText(true);
-	}	
+	}
 
 	@Listen("onChange = #focusTo")
 	public void onChange(Event event) {
@@ -413,11 +413,11 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
 
 		Border.Style borderLineStyle = (Border.Style)borderLineStyleBox.getModel().getElementAt(borderLineStyleBox.getSelectedIndex());
 		borders.setStyle(borderLineStyle);
-		
+
 		borders.setColor(borderColorBox.getValue());
 		selectedRange.applyBorders(borders);
-		
-		//debug 
+
+		//debug
 		selectedRange.loadCellStyle()
 			.thenAccept((cellStyle -> {
 				System.out.println(cellStyle.getBorders().toString());
@@ -495,11 +495,11 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
 	public void clearValidation(Event e){
 		selectedRange.clearDataValidation();
 	}
-	
+
 	/**
 	 * an example of synchronous-style API usage, just calling get().
-	 * @throws ExecutionException 
-	 * @throws InterruptedException 
+	 * @throws ExecutionException
+	 * @throws InterruptedException
 	 */
 	@Listen("onClick = #showStyle")
 	public void showCellStyle() throws InterruptedException, ExecutionException{
@@ -519,7 +519,7 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
 		style.setProtection(protection);
 		selectedRange.applyCellStyle(style);
 	}
-	
+
 	@Listen("onClick = #unlockSelection")
 	public void unlockSelection() throws ExecutionException, InterruptedException {
 		PatternFill fill = selectedRange.createPatternFill();
@@ -593,6 +593,11 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
 	@Listen("onClick = menuitem[label='Add Sheet']")
 	public void addSheet() throws ExecutionException, InterruptedException {
 		selectedRange.loadWorkbook().get().insertWorksheet();
+	}
+
+	@Listen("onClick = #freezePane")
+	public void freezePane() {
+		selectedRange.applyFreezePanes();
 	}
 
 	private void enableSocketIOLog() {
