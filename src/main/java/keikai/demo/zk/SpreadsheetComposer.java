@@ -603,39 +603,5 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
 		handler.setFormatter(new SimpleFormatter());
 		handler.setLevel(Level.ALL);
 		log.addHandler(handler);
-	}	
-	
-	/**
-	 * Since a lambda can't throw exceptions so we need to catch it and throw an unchecked exception
-	 * @author hawk
-	 *
-	 */
-	public interface ExceptionalConsumer<T> extends Consumer<T>{
-		default void accept(T v){
-			try {
-				acceptWithException(v);
-			} catch (Exception e) {
-				throw new RuntimeException("wrapped", e);
-			}
-		}
-
-		void acceptWithException(T v) throws Exception;
-	}
-
-	/**
-	 * Represents a function that handles checked exception by throwing a runtime exception.
-	 * @param <T> input
-	 * @param <R> result
-	 */
-	public interface ExceptionableFunction<T, R> extends Function<T, R> {
-		default R apply(T val) {
-			try {
-				return applyWithException(val);
-			} catch (Exception e) {
-				throw new RuntimeException(e);
-			}
-		}
-		
-		R applyWithException(T val) throws Exception;
 	}
 }
