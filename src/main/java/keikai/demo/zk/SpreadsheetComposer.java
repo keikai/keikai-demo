@@ -16,7 +16,7 @@ import io.keikai.client.api.Fill.PatternFill;
 import io.keikai.client.api.event.*;
 import io.keikai.client.api.event.Events;
 import io.keikai.util.Converter;
-import keikai.demo.Configuration;
+import keikai.demo.*;
 import org.apache.commons.io.FileUtils;
 import org.zkoss.zhtml.Script;
 import org.zkoss.zk.ui.*;
@@ -32,7 +32,6 @@ import java.io.*;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.function.*;
-import java.util.logging.*;
 
 import static io.keikai.client.api.Borders.BorderIndex;
 import static io.keikai.client.api.Range.*;
@@ -109,7 +108,7 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
 	@Override
 	public void doAfterCompose(Component root) throws Exception {
 		super.doAfterCompose(root);
-		enableSocketIOLog();
+		KeikaiUtil.enableSocketIOLog();
 		initSpreadsheet();
 		initMenubar();
 		//enable server push to update UI according to keikai async response
@@ -598,15 +597,5 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
 	@Listen("onClick = #freezePane")
 	public void freezePane() {
 		selectedRange.applyFreezePanes();
-	}
-
-	private void enableSocketIOLog() {
-		Logger log = java.util.logging.Logger.getLogger("");
-		log.setLevel(Level.FINER);
-
-		ConsoleHandler handler = new ConsoleHandler();
-		handler.setFormatter(new SimpleFormatter());
-		handler.setLevel(Level.ALL);
-		log.addHandler(handler);
 	}
 }
