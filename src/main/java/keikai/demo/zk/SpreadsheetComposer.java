@@ -30,12 +30,11 @@ import org.zkoss.zul.ext.Selectable;
 
 import java.io.*;
 import java.util.*;
-import java.util.concurrent.ExecutionException;
+import java.util.concurrent.*;
 import java.util.function.*;
 
 import static io.keikai.client.api.Borders.BorderIndex;
 import static io.keikai.client.api.Range.*;
-
 
 /**
  * Demonstrate API usage about: import, export, listen events, change styles, insert data <br>
@@ -94,6 +93,8 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
 	private int currentDataRowIndex = 0; //current row index to insert data
 
 	@Wire
+	private Hlayout statusBar;
+	@Wire
 	private Popup info;
 
 	private ListModelList<String> fileListModel;
@@ -151,9 +152,9 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
 		// add more statements of spreadsheet.ready().thenRun()
 	}
 
-	private void importFile(String fileName) throws IOException {
+	private CompletableFuture<Workbook> importFile(String fileName) throws IOException {
 		File template = new File(BOOK_FOLDER, fileName);
-		spreadsheet.imports(fileName, template);
+		return spreadsheet.imports(fileName, template);
 	}
 
 	/**
@@ -283,7 +284,11 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
         if (spreadsheet.containsWorkbook(fileName).get()){
             spreadsheet.deleteWorkbook(fileName);
         }
-		importFile(fileName);
+		Clients.showBusy(statusBar, "Loading...");
+		final Desktop desktop = getPage().getDesktop();
+		importFile(fileName).whenComplete((workbook, throwable) -> {
+			AsyncRender.runUpdate(desktop, () -> Clients.clearBusy(statusBar));
+		});
 		fileListModel.clearSelection();
 	}
 
