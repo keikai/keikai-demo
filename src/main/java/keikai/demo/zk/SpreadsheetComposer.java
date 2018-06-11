@@ -603,8 +603,15 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
 	public void freezePane() {
 		selectedRange.applyFreezePanes();
 	}
+
 	@Listen("onClick = #autoFill")
 	public void autoFill(){
 		selectedRange.applyAutoFill(Ranges.expandToRow(selectedRange, 5), AutoFillType.FillDefault);
 	}
+
+	@Listen("onClick = #sort")
+	public void sort(){
+		selectedRange.applySort(selectedRange.getColumns(), SortOrder.Ascending, null, null, null, null, YesNoGuess.No, false, SortOrientation.SortColumns, null, null, null);
+	}
+
 }
