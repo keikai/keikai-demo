@@ -546,7 +546,7 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
 	 */
 	@Listen("onClick = menuitem[label='Delete row']")
 	public void deleteEntireRow(){
-		selectedRange.delete(DeleteShiftDirection.ShiftUp);
+		selectedRange.getEntireRow().delete(DeleteShiftDirection.ShiftUp);
 	}
 
 	/**
@@ -554,7 +554,7 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
 	 */
 	@Listen("onClick = menuitem[label='Delete column']")
 	public void deleteEntireColumn(){
-		selectedRange.delete(DeleteShiftDirection.ShiftToLeft);
+		selectedRange.getEntireColumn().delete(DeleteShiftDirection.ShiftToLeft);
 	}
 
 	@Listen("onClick = menuitem[label='Shift up']")
@@ -573,7 +573,7 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
 	 */
 	@Listen("onClick = menuitem[label='Insert column']")
 	public void insertColumn(){
-		selectedRange.insert(InsertShiftDirection.ShiftToRight, InsertFormatOrigin.LeftOrAbove);
+		selectedRange.getEntireColumn().insert(InsertShiftDirection.ShiftToRight, InsertFormatOrigin.LeftOrAbove);
 	}
 
 	/**
@@ -581,7 +581,7 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
 	 */
 	@Listen("onClick = menuitem[label='Insert row']")
 	public void insertRow(){
-		selectedRange.insert(InsertShiftDirection.ShiftDown, InsertFormatOrigin.LeftOrAbove);
+		selectedRange.getEntireRow().insert(InsertShiftDirection.ShiftDown, InsertFormatOrigin.LeftOrAbove);
 	}
 
 	@Listen("onClick = menuitem[label='Shift right']")
