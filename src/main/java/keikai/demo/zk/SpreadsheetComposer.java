@@ -274,7 +274,9 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
 	}
 
 	private String[] generateBookList() {
-		return BOOK_FOLDER.list();
+		return BOOK_FOLDER.list((dir, name) -> {
+			return name.endsWith("xlsx");
+		});
 	}
 
 	@Listen("onSelect = #filelistBox")
