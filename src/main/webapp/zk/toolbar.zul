@@ -33,6 +33,7 @@
         <menuitem id="lockSelection" label="Lock Selection"/>
         <menuitem id="unlockSelection" label="Unlock Selection"/>
         <menuitem id="freezePane" label="Freeze Pane"/>
+        <menuitem id="autoFill" label="Auto Fill"/>
     </menubar>
     <popup id="filePopup">
         <groupbox width="300px">
