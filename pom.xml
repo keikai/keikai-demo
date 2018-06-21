@@ -6,7 +6,7 @@
 	<version>0.0.1-SNAPSHOT</version>
 	<properties>
 		<zk.version>8.5.1</zk.version>
-		<keikai.version>0.8.0-SNAPSHOT</keikai.version>
+		<keikai.version>1.0.0-alpha.1-SNAPSHOT</keikai.version>
 		<selenium.version>2.53.1</selenium.version>
 		<maven.build.timestamp.format>yyyy-MM-dd</maven.build.timestamp.format>
 		<packname>-${project.version}-FL-${maven.build.timestamp}</packname>
