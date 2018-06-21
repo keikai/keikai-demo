@@ -16,7 +16,7 @@ import io.keikai.client.api.Fill.PatternFill;
 import io.keikai.client.api.event.*;
 import io.keikai.client.api.event.Events;
 import io.keikai.util.Converter;
-import keikai.demo.Configuration;
+import keikai.demo.*;
 import org.apache.commons.io.FileUtils;
 import org.zkoss.zhtml.Script;
 import org.zkoss.zk.ui.*;
@@ -30,13 +30,11 @@ import org.zkoss.zul.ext.Selectable;
 
 import java.io.*;
 import java.util.*;
-import java.util.concurrent.ExecutionException;
+import java.util.concurrent.*;
 import java.util.function.*;
-import java.util.logging.*;
 
 import static io.keikai.client.api.Borders.BorderIndex;
 import static io.keikai.client.api.Range.*;
-
 
 /**
  * Demonstrate API usage about: import, export, listen events, change styles, insert data <br>
@@ -55,7 +53,7 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
 	private Selectbox borderLineStyleBox;
 	@Wire
 	private Listbox filelistBox;
-	
+
 	@Wire
 	private Label keyCode;
 
@@ -78,7 +76,7 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
 	@Wire
 	private Popup filePopup;
 
-	@Wire 
+	@Wire
 	private Popup contextMenu;
 	@Wire
 	private Selectbox fillPatternBox;
@@ -95,8 +93,10 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
 	private int currentDataRowIndex = 0; //current row index to insert data
 
 	@Wire
+	private Hlayout statusBar;
+	@Wire
 	private Popup info;
-	
+
 	private ListModelList<String> fileListModel;
 	final private File BOOK_FOLDER = new File(getPage().getDesktop().getWebApp().getRealPath("/book/"));
 
@@ -109,7 +109,7 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
 	@Override
 	public void doAfterCompose(Component root) throws Exception {
 		super.doAfterCompose(root);
-//		enableSocketIOLog();
+		KeikaiUtil.enableSocketIOLog();
 		initSpreadsheet();
 		initMenubar();
 		//enable server push to update UI according to keikai async response
@@ -152,12 +152,9 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
 		// add more statements of spreadsheet.ready().thenRun()
 	}
 
-	private void importFile(String fileName) throws IOException {
+	private CompletableFuture<Workbook> importFile(String fileName) throws IOException {
 		File template = new File(BOOK_FOLDER, fileName);
-		final Desktop desktop = getPage().getDesktop();
-		spreadsheet.imports(fileName, template).whenComplete(((workbook, throwable) -> {
-			AsyncRender.getUpdateRunner(desktop, ()->{Clients.clearBusy();}).run();
-		}));
+		return spreadsheet.imports(fileName, template);
 	}
 
 	/**
@@ -200,7 +197,7 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
 				((Label) getSelf().getFellow("cell")).setValue(selectedRange.getA1Notation());
 			}).run();
 		};
-		
+
 		//register spreadsheet event listeners
 		spreadsheet.addEventListener(Events.ON_SELECTION_CHANGE,  listener::accept);
 
@@ -261,24 +258,25 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
 	private void initMenubar() {
 		borderIndexBox.setModel(new ListModelArray<>(BorderIndex.values()));
 		((Selectable<BorderIndex>)borderIndexBox.getModel()).addToSelection(BorderIndex.EdgeBottom);
-		
+
 		borderLineStyleBox.setModel(new ListModelArray<>(Border.Style.values()));
 		((Selectable<Border.Style>)borderLineStyleBox.getModel()).addToSelection(Border.Style.Thin);
-		
+
 		filterOperator.setModel(new ListModelArray<>(AutoFilterOperator.values()));
 		((Selectable<AutoFilterOperator>) filterOperator.getModel()).addToSelection(AutoFilterOperator.FilterValues);
-		
+
 
 		fillPatternBox.setModel(new ListModelArray<>(PatternFill.PatternType.values()));
 		((Selectable<PatternFill.PatternType>)fillPatternBox.getModel()).addToSelection(PatternFill.PatternType.Solid);
 
 		fileListModel = new ListModelList(generateBookList());
 		filelistBox.setModel(fileListModel);
-
 	}
 
 	private String[] generateBookList() {
-		return BOOK_FOLDER.list();
+		return BOOK_FOLDER.list((dir, name) -> {
+			return name.endsWith("xlsx");
+		});
 	}
 
 	@Listen("onSelect = #filelistBox")
@@ -288,9 +286,12 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
         if (spreadsheet.containsWorkbook(fileName).get()){
             spreadsheet.deleteWorkbook(fileName);
         }
-		importFile(fileName);
+		Clients.showBusy(statusBar, "Loading...");
+		final Desktop desktop = getPage().getDesktop();
+		importFile(fileName).whenComplete((workbook, throwable) -> {
+			AsyncRender.runUpdate(desktop, () -> Clients.clearBusy(statusBar));
+		});
 		fileListModel.clearSelection();
-		Clients.showBusy("Loading...");
 	}
 
 	/**
@@ -312,7 +313,7 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
 	public void openDialog(){
 		Fileupload.get(new HashMap(), null, "Excel (xlsx) File Upload", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", -1, -1, true,null);
 	}
-	
+
 	@Listen("onUpload = #root")
 	public void upload(UploadEvent e) throws IOException {
 		String name = e.getMedia().getName();
@@ -373,22 +374,22 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
 		fill.setBackgroundColor(((Colorbox)e.getTarget().getFellow("backgroundColorBox")).getValue());
 		selectedRange.applyFill(fill);
 	}
-	
+
 	@Listen("onChange = #cellValue")
 	public void onClick(Event event) {
 		String cellReference = ((Label) getSelf().getFellow("cell")).getValue();
 		spreadsheet.getRange(cellReference).applyValue(cellValueBox.getValue());
 	}
-	
+
 	@Listen("onClick = #clearContents")
 	public void clearContents(Event event) {
 		selectedRange.clearContents();
 	}
-	
+
 	@Listen("onClick = menuitem[label='wrap']")
 	public void wrap(){
 		selectedRange.applyWrapText(true);
-	}	
+	}
 
 	@Listen("onChange = #focusTo")
 	public void onChange(Event event) {
@@ -418,11 +419,11 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
 
 		Border.Style borderLineStyle = (Border.Style)borderLineStyleBox.getModel().getElementAt(borderLineStyleBox.getSelectedIndex());
 		borders.setStyle(borderLineStyle);
-		
+
 		borders.setColor(borderColorBox.getValue());
 		selectedRange.applyBorders(borders);
-		
-		//debug 
+
+		//debug
 		selectedRange.loadCellStyle()
 			.thenAccept((cellStyle -> {
 				System.out.println(cellStyle.getBorders().toString());
@@ -500,11 +501,11 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
 	public void clearValidation(Event e){
 		selectedRange.clearDataValidation();
 	}
-	
+
 	/**
 	 * an example of synchronous-style API usage, just calling get().
-	 * @throws ExecutionException 
-	 * @throws InterruptedException 
+	 * @throws ExecutionException
+	 * @throws InterruptedException
 	 */
 	@Listen("onClick = #showStyle")
 	public void showCellStyle() throws InterruptedException, ExecutionException{
@@ -524,7 +525,7 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
 		style.setProtection(protection);
 		selectedRange.applyCellStyle(style);
 	}
-	
+
 	@Listen("onClick = #unlockSelection")
 	public void unlockSelection() throws ExecutionException, InterruptedException {
 		PatternFill fill = selectedRange.createPatternFill();
@@ -600,47 +601,19 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
 		selectedRange.loadWorkbook().get().insertWorksheet();
 	}
 
-	private void enableSocketIOLog() {
-		Logger log = java.util.logging.Logger.getLogger("");
-		log.setLevel(Level.FINER);
-
-		ConsoleHandler handler = new ConsoleHandler();
-		handler.setFormatter(new SimpleFormatter());
-		handler.setLevel(Level.ALL);
-		log.addHandler(handler);
-	}	
-	
-	/**
-	 * Since a lambda can't throw exceptions so we need to catch it and throw an unchecked exception
-	 * @author hawk
-	 *
-	 */
-	public interface ExceptionalConsumer<T> extends Consumer<T>{
-		default void accept(T v){
-			try {
-				acceptWithException(v);
-			} catch (Exception e) {
-				throw new RuntimeException("wrapped", e);
-			}
-		}
-
-		void acceptWithException(T v) throws Exception;
+	@Listen("onClick = #freezePane")
+	public void freezePane() {
+		selectedRange.applyFreezePanes();
 	}
 
-	/**
-	 * Represents a function that handles checked exception by throwing a runtime exception.
-	 * @param <T> input
-	 * @param <R> result
-	 */
-	public interface ExceptionableFunction<T, R> extends Function<T, R> {
-		default R apply(T val) {
-			try {
-				return applyWithException(val);
-			} catch (Exception e) {
-				throw new RuntimeException(e);
-			}
-		}
-		
-		R applyWithException(T val) throws Exception;
+	@Listen("onClick = #autoFill")
+	public void autoFill(){
+		selectedRange.applyAutoFill(Ranges.expandToRow(selectedRange, 5), AutoFillType.FillDefault);
 	}
+
+	@Listen("onClick = #sort")
+	public void sort(){
+		selectedRange.applySort(selectedRange.getColumns(), SortOrder.Ascending, null, null, null, null, YesNoGuess.No, false, SortOrientation.SortColumns, null, null, null);
+	}
+
 }

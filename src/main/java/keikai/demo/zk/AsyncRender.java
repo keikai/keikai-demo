@@ -71,4 +71,22 @@ public class AsyncRender {
 			}
 		};
 	}
+
+	/**
+	 * Executes UI update logic between activation / de-activation of a desktop. (Template Method pattern)
+	 * @param desktop
+	 * @param update
+	 */
+	static public void runUpdate(Desktop desktop, Runnable update){
+		try {
+			if(desktop.isAlive()){
+				Executions.activate(desktop);
+				update.run();
+			}
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		} finally {
+			Executions.deactivate(desktop);
+		}
+	}
 }

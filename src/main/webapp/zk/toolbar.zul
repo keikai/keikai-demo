@@ -32,6 +32,9 @@
         <menuitem id="deleteSelection" label="Delete"/>
         <menuitem id="lockSelection" label="Lock Selection"/>
         <menuitem id="unlockSelection" label="Unlock Selection"/>
+        <menuitem id="freezePane" label="Freeze Pane"/>
+        <menuitem id="autoFill" label="Auto Fill"/>
+        <menuitem id="sort" label="Simple Sort"/>
     </menubar>
     <popup id="filePopup">
         <groupbox width="300px">
