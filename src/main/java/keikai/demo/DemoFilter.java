@@ -37,20 +37,20 @@ public class DemoFilter implements Filter {
 	}
 
 	private void fillCellData(File template){
-		spreadsheet.ready(() -> {
-			try{
-				spreadsheet.imports("template.xlsx", template);
-				for (int row = 1; row < 10; row++) {
-					for (int col = 0; col < 10; col++) {
-						spreadsheet.getRange(row, col).applyValue(row+","+col); // The value is either String or Number value 
-					}
-				}
-				applyBorders();
-				applyFont();
-			}catch (Exception e) {
-				e.printStackTrace();
-			}
-		});
+//		spreadsheet.ready(() -> {
+//			try{
+//				spreadsheet.imports("template.xlsx", template);
+//				for (int row = 1; row < 10; row++) {
+//					for (int col = 0; col < 10; col++) {
+//						spreadsheet.getRange(row, col).applyValue(row+","+col); // The value is either String or Number value
+//					}
+//				}
+//				applyBorders();
+//				applyFont();
+//			}catch (Exception e) {
+//				e.printStackTrace();
+//			}
+//		});
 
 	}
 
@@ -61,7 +61,7 @@ public class DemoFilter implements Filter {
 		font.setBold(true);
 		font.setName("Calibri");
 		cellStyle.setFont(font);
-		range.applyCellStyle(cellStyle);
+		range.setCellStyle(cellStyle);
 	}
 
 	private void applyBorders() {
@@ -69,7 +69,7 @@ public class DemoFilter implements Filter {
 		Borders borders = range.createBorders(BorderIndex.EdgeBottom);
 		borders.setStyle(Style.Thin);
 		borders.setColor("#363636");
-		range.applyBorders(borders);
+		range.setBorders(borders);
 	}
 
 	public void destroy() {
