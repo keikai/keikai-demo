@@ -127,9 +127,9 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
         insertDataByRow(200);
     }
 
-    private void importFile(String fileName) throws IOException {
+    private void importFile(String fileName) throws IOException, AbortedException {
         File template = new File(BOOK_FOLDER, fileName);
-        spreadsheet.imports(fileName, template);
+        spreadsheet.importAndReplace(fileName, template);
     }
 
     /**
@@ -251,7 +251,7 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
     }
 
     @Listen("onSelect = #filelistBox")
-    public void loadServerFile() throws IOException, ExecutionException, InterruptedException {
+    public void loadServerFile() throws IOException, ExecutionException, InterruptedException, AbortedException {
         filePopup.close();
         String fileName = fileListModel.getSelection().iterator().next();
         if (spreadsheet.containsWorkbook(fileName)) {
@@ -265,7 +265,7 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
      * Can't import a book more than once, we should delete the previous book first.
      */
     @Listen("onClick = menuitem[iconSclass='z-icon-file']")
-    public void newFile() throws ExecutionException, InterruptedException {
+    public void newFile() throws ExecutionException, InterruptedException, AbortedException {
         try {
             if (spreadsheet.containsWorkbook(BLANK_XLSX)) {
                 spreadsheet.deleteWorkbook(BLANK_XLSX);
@@ -285,7 +285,11 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
     public void upload(UploadEvent e) throws IOException {
         String name = e.getMedia().getName();
         InputStream streamData = e.getMedia().getStreamData();
-        spreadsheet.imports(name, streamData);
+        try {
+            spreadsheet.importAndReplace(name, streamData);
+        } catch (AbortedException e1) {
+            e1.printStackTrace();
+        }
         FileUtils.copyInputStreamToFile(streamData, new File(BOOK_FOLDER, name));
     }
 

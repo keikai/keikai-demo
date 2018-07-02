@@ -12,130 +12,127 @@ import org.zkoss.zk.ui.select.SelectorComposer;
 import org.zkoss.zk.ui.select.annotation.Wire;
 import org.zkoss.zul.Div;
 
-import java.io.File;
+import java.io.*;
 import java.text.NumberFormat;
 import java.util.concurrent.*;
 
 public class IntegrationController extends SelectorComposer<Component> {
-	
-	private Spreadsheet fluSpreadsheet;
-	private Range selectedRange;
 
-	@Wire
-	private Div spreadsheetBlock;
-	@Wire
-	private Gmaps fluMap;
-	
-	@Wire
-	private Charts fluChart;
-	
+    private Spreadsheet fluSpreadsheet;
+    private Range selectedRange;
 
-	private Gmarker[] gmarkerArray;
-	private final static int NUMBER_OF_GMARKER_ROW = 42;
-//	private String prevCellValue;
-	private NumberFormat format;
+    @Wire
+    private Div spreadsheetBlock;
+    @Wire
+    private Gmaps fluMap;
 
-	public void doAfterCompose(Component comp) throws Exception {
-		super.doAfterCompose(comp);
-		getPage().getDesktop().enableServerPush(true);
-		initChart();
-		initSpreadsheet();
-		registerListeners();
-		gmarkerArray = new Gmarker[NUMBER_OF_GMARKER_ROW];
-	}
+    @Wire
+    private Charts fluChart;
 
 
+    private Gmarker[] gmarkerArray;
+    private final static int NUMBER_OF_GMARKER_ROW = 42;
+    //	private String prevCellValue;
+    private NumberFormat format;
+
+    public void doAfterCompose(Component comp) throws Exception {
+        super.doAfterCompose(comp);
+        getPage().getDesktop().enableServerPush(true);
+        initChart();
+        initSpreadsheet();
+        registerListeners();
+        gmarkerArray = new Gmarker[NUMBER_OF_GMARKER_ROW];
+    }
 
 
-	/* get a spreadsheet java client and getUpdateRunner spreadsheet on a browser
-	 */
-	private void initSpreadsheet() {
-		fluSpreadsheet = Keikai.newClient(Configuration.DEMO_SERVER); //connect to keikai server
-		getPage().getDesktop().setAttribute(SpreadsheetCleanUp.SPREADSHEET, fluSpreadsheet); //make spreadsheet get closed
-		//pass target element's id and get keikai script URI
-		String scriptUri = fluSpreadsheet.getURI(spreadsheetBlock.getUuid());
-		//load the initial script to getUpdateRunner spreadsheet at the client
-		Script initialScript = new Script();
-		initialScript.setSrc(scriptUri);
-		initialScript.setDefer(true);
-		initialScript.setAsync(true);
-		initialScript.setPage(getPage());
-		selectedRange = fluSpreadsheet.getRange("A1");
+    /* get a spreadsheet java client and getUpdateRunner spreadsheet on a browser
+     */
+    private void initSpreadsheet() {
+        fluSpreadsheet = Keikai.newClient(Configuration.DEMO_SERVER); //connect to keikai server
+        getPage().getDesktop().setAttribute(SpreadsheetCleanUp.SPREADSHEET, fluSpreadsheet); //make spreadsheet get closed
+        //pass target element's id and get keikai script URI
+        String scriptUri = fluSpreadsheet.getURI(spreadsheetBlock.getUuid());
+        //load the initial script to getUpdateRunner spreadsheet at the client
+        Script initialScript = new Script();
+        initialScript.setSrc(scriptUri);
+        initialScript.setDefer(true);
+        initialScript.setAsync(true);
+        initialScript.setPage(getPage());
+        selectedRange = fluSpreadsheet.getRange("A1");
 
-		String fileName = "swineFlu.xlsx";
-		File file = new File(WebApps.getCurrent().getRealPath(Configuration.DEMO_BOOK_PATH), fileName);
-		final Desktop desktop = getPage().getDesktop();
-		fluSpreadsheet.imports(fileName, file).whenComplete((workbook, throwable) -> {
-			AsyncRender.getUpdateRunner(desktop, () ->{
-				try {
-					refreshChartData();
-					initMapMarkers();
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
-			}).run();
-		});
-	}
+        String fileName = "swineFlu.xlsx";
+        File file = new File(WebApps.getCurrent().getRealPath(Configuration.DEMO_BOOK_PATH), fileName);
+        final Desktop desktop = getPage().getDesktop();
+        try {
+            fluSpreadsheet.imports(fileName, file);
+            refreshChartData();
+            initMapMarkers();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 
-	private void registerListeners() {
-		fluSpreadsheet.addEventListener(Events.ON_CELL_CLICK, (event) ->{
+    private void registerListeners() {
+        fluSpreadsheet.addEventListener(Events.ON_CELL_CLICK, (event) -> {
 
-		});
-	}
+        });
+    }
 
 
-	private void initChart() {
-		if (fluChart == null)
-			return;
-		fluChart.setTitle("Swine Flu Cases");
-		fluChart.getExporting().setEnabled(false);
-		fluChart.getPlotOptions().getPie().getDataLabels().setEnabled(false);
-		fluChart.getPlotOptions().getPie().setShowInLegend(true);
-		fluChart.setModel(new DefaultPieModel());
-	}
+    private void initChart() {
+        if (fluChart == null)
+            return;
+        fluChart.setTitle("Swine Flu Cases");
+        fluChart.getExporting().setEnabled(false);
+        fluChart.getPlotOptions().getPie().getDataLabels().setEnabled(false);
+        fluChart.getPlotOptions().getPie().setShowInLegend(true);
+        fluChart.setModel(new DefaultPieModel());
+    }
 
-	private void refreshChartData() throws ExecutionException, InterruptedException {
+    private void refreshChartData() throws ExecutionException, InterruptedException {
 
-		PieModel model = (PieModel) fluChart.getModel();
-		model.clear();
+        PieModel model = (PieModel) fluChart.getModel();
+        model.clear();
 
-		for (int row = 45; row < 53; row++) {
-			CompletableFuture<RangeValue> rangeFuture = fluSpreadsheet.getRange(row, 0).loadValue();
+        for (int row = 45; row < 53; row++) {
+            /*
+            CompletableFuture<RangeValue> rangeFuture = fluSpreadsheet.getRange(row, 0).loadValue();
 
-			rangeFuture.thenCombineAsync(fluSpreadsheet.getRange(row, 1).loadValue(),
-				(rangeValue1, rangeValue2) -> {
-					String name = rangeValue1.getCellValue().getStringValue();
-					Double nCases = rangeValue2.getCellValue().getDoubleValue();
-					AsyncRender.getUpdateRunner(getPage().getDesktop(), () ->{
-						model.setValue(name, nCases);
-					}).run();
-					return rangeFuture; //TODO might be incorrect return value
-				});
-		}
-	}
+            rangeFuture.thenCombineAsync(fluSpreadsheet.getRange(row, 1).loadValue(),
+                    (rangeValue1, rangeValue2) -> {
+                        String name = rangeValue1.getCellValue().getStringValue();
+                        Double nCases = rangeValue2.getCellValue().getDoubleValue();
+                        AsyncRender.getUpdateRunner(getPage().getDesktop(), () -> {
+                            model.setValue(name, nCases);
+                        }).run();
+                        return rangeFuture; //TODO might be incorrect return value
+                    });
+                    */
+        }
+    }
 
-	private void initMapMarkers() {
-		fluMap.setZoom(5);
-		for (int row = 2; row < NUMBER_OF_GMARKER_ROW; row++) {
+    private void initMapMarkers() {
+        fluMap.setZoom(5);
+        for (int row = 2; row < NUMBER_OF_GMARKER_ROW; row++) {
 //			CompletableFuture<RangeValue> stateRangeFuture = fluSpreadsheet.getRange(row, 0).loadValue();
 //			CompletableFuture<RangeValue> nCaseRangeFuture = fluSpreadsheet.getRange(row, 1).loadValue();
 //			CompletableFuture<RangeValue> nDeathRangeFuture = fluSpreadsheet.getRange(row, 2).loadValue();
-			CompletableFuture<RangeValue> latRangeFuture = fluSpreadsheet.getRange(row, 4).loadValue();
-			CompletableFuture<RangeValue> lngRangeFuture = fluSpreadsheet.getRange(row, 5).loadValue();
+//            CompletableFuture<RangeValue> latRangeFuture = fluSpreadsheet.getRange(row, 4).loadValue();
+//            CompletableFuture<RangeValue> lngRangeFuture = fluSpreadsheet.getRange(row, 5).loadValue();
 //			CompletableFuture.allOf(stateRangeFuture , nCaseRangeFuture, nDeathRangeFuture, latRangeFuture, lngCaseRangeFuture);
-			latRangeFuture.thenCombineAsync(lngRangeFuture, (latRangeValue, lngRangeValue) ->{
-				double lat = latRangeValue.getCellValue().getDoubleValue();
-				double lng = lngRangeValue.getCellValue().getDoubleValue();
-				AsyncRender.getUpdateRunner(getPage().getDesktop(), ()->{
-					Gmarker gmarker = new Gmarker();
-					gmarker.setLat(lat);
-					gmarker.setLng(lng);
-					gmarker.setContent(" ");
-					fluMap.appendChild(gmarker);
-				}).run();
-				return latRangeFuture;
-			});
 			/*
+            latRangeFuture.thenCombineAsync(lngRangeFuture, (latRangeValue, lngRangeValue) -> {
+                double lat = latRangeValue.getCellValue().getDoubleValue();
+                double lng = lngRangeValue.getCellValue().getDoubleValue();
+                AsyncRender.getUpdateRunner(getPage().getDesktop(), () -> {
+                    Gmarker gmarker = new Gmarker();
+                    gmarker.setLat(lat);
+                    gmarker.setLng(lng);
+                    gmarker.setContent(" ");
+                    fluMap.appendChild(gmarker);
+                }).run();
+                return latRangeFuture;
+            });
 			String state = Ranges.range(sheet, row, 0).getCellEditText();
 
 			int numOfCase = parseInt(Ranges.range(sheet, row, 1)
@@ -172,8 +169,8 @@ public class IntegrationController extends SelectorComposer<Component> {
 			}
 
 		*/
-		}
-	}
+        }
+    }
 
 	/*
 	@Listen("onCellFocus = #fluSpreadsheet")

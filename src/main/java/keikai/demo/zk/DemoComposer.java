@@ -24,7 +24,7 @@ import org.zkoss.zk.ui.util.Clients;
 import org.zkoss.zul.*;
 
 import java.io.*;
-import java.util.*;
+import java.util.HashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.function.*;
 import java.util.logging.*;
@@ -69,12 +69,10 @@ public class DemoComposer extends SelectorComposer<Component> {
 	}
 
 
-	private void importFile(String fileName) throws IOException {
+	private void importFile(String fileName) throws IOException, AbortedException {
 		File template = new File(BOOK_FOLDER, fileName);
 		final Desktop desktop = getPage().getDesktop();
-		spreadsheet.imports(fileName, template).whenComplete(((workbook, throwable) -> {
-			AsyncRender.getUpdateRunner(desktop, ()->{Clients.clearBusy(fileNameBox);}).run();
-		}));
+		spreadsheet.importAndReplace(fileName, template);
 		fileNameLabel.setValue(fileName);
 	}
 
@@ -117,6 +115,7 @@ public class DemoComposer extends SelectorComposer<Component> {
 			RangeSelectEvent event = (RangeSelectEvent) e;
 			selectedRange = event.getActiveSelection();
 			//display the current cell value/formula
+			/*
 			event.getRange().loadValue().thenAccept((rangeValue) -> {
 				AsyncRender.getUpdateRunner(desktop, () -> {
 					// ignore validation on null value
@@ -127,6 +126,7 @@ public class DemoComposer extends SelectorComposer<Component> {
 					}
 				}).run();
 			});
+			*/
 			//display the current cell address
 			AsyncRender.getUpdateRunner(desktop, () -> {
 				((Label) getSelf().getFellow("cellAddress")).setValue(selectedRange.getA1Notation());
@@ -136,12 +136,9 @@ public class DemoComposer extends SelectorComposer<Component> {
 	}
 
 	@Listen("onSelect = #filelistBox")
-	public void loadServerFile() throws IOException, ExecutionException, InterruptedException {
+	public void loadServerFile() throws IOException, AbortedException {
 		filePopup.close();
 		String fileName = fileListModel.getSelection().iterator().next();
-        if (spreadsheet.containsWorkbook(fileName).get()){
-            spreadsheet.deleteWorkbook(fileName);
-        }
 		importFile(fileName);
 		fileListModel.clearSelection();
 		Clients.showBusy(fileNameBox, "Loading...");
@@ -151,11 +148,8 @@ public class DemoComposer extends SelectorComposer<Component> {
 	 * Can't import a book more than once, we should delete the previous book first.
 	 */
 	@Listen("onClick = menuitem[iconSclass='z-icon-file']")
-	public void newFile() throws ExecutionException, InterruptedException {
+	public void newFile() throws AbortedException {
 		try{
-		    if (spreadsheet.containsWorkbook(BLANK_XLSX).get()){
-		        spreadsheet.deleteWorkbook(BLANK_XLSX);
-            }
 			importFile(BLANK_XLSX);
 		}catch(IOException e){
 			Clients.showNotification(e.getMessage());
@@ -168,7 +162,7 @@ public class DemoComposer extends SelectorComposer<Component> {
 	}
 
 	@Listen("onUpload = #root")
-	public void upload(UploadEvent e) throws IOException {
+	public void upload(UploadEvent e) throws IOException, DuplicateNameException, AbortedException {
 		String name = e.getMedia().getName();
 		InputStream streamData = e.getMedia().getStreamData();
 		spreadsheet.imports(name, streamData);
@@ -178,18 +172,8 @@ public class DemoComposer extends SelectorComposer<Component> {
 	@Listen("onClick = menuitem[iconSclass='z-icon-file-excel-o']")
 	public void export() throws FileNotFoundException {
 		ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-		spreadsheet.export(spreadsheet.getCurrentWorkbook(), outputStream).whenComplete((a, b) -> {
-			try {
-				Executions.activate(getSelf().getDesktop());
-				Filedownload.save(outputStream.toByteArray(), "application/excel", spreadsheet.getCurrentWorkbook());
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-			} finally {
-
-				Executions.deactivate(getSelf().getDesktop());
-			}
-		});
-
+		spreadsheet.export(spreadsheet.getWorkbook().getName(), outputStream);
+		Filedownload.save(outputStream.toByteArray(), "application/excel", spreadsheet.getWorkbook().getName());
 	}
 
 
