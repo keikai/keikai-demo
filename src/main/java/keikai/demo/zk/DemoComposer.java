@@ -69,10 +69,10 @@ public class DemoComposer extends SelectorComposer<Component> {
 	}
 
 
-	private void importFile(String fileName) throws IOException, AbortedException {
+	private void importFile(String fileName) throws IOException {
 		File template = new File(BOOK_FOLDER, fileName);
 		final Desktop desktop = getPage().getDesktop();
-		spreadsheet.importAndReplace(fileName, template);
+//		spreadsheet.importAndReplace(fileName, template);
 		fileNameLabel.setValue(fileName);
 	}
 
@@ -136,7 +136,7 @@ public class DemoComposer extends SelectorComposer<Component> {
 	}
 
 	@Listen("onSelect = #filelistBox")
-	public void loadServerFile() throws IOException, AbortedException {
+	public void loadServerFile() throws IOException {
 		filePopup.close();
 		String fileName = fileListModel.getSelection().iterator().next();
 		importFile(fileName);
@@ -148,7 +148,7 @@ public class DemoComposer extends SelectorComposer<Component> {
 	 * Can't import a book more than once, we should delete the previous book first.
 	 */
 	@Listen("onClick = menuitem[iconSclass='z-icon-file']")
-	public void newFile() throws AbortedException {
+	public void newFile() {
 		try{
 			importFile(BLANK_XLSX);
 		}catch(IOException e){
@@ -162,7 +162,7 @@ public class DemoComposer extends SelectorComposer<Component> {
 	}
 
 	@Listen("onUpload = #root")
-	public void upload(UploadEvent e) throws IOException, DuplicateNameException, AbortedException {
+	public void upload(UploadEvent e) throws IOException{
 		String name = e.getMedia().getName();
 		InputStream streamData = e.getMedia().getStreamData();
 		spreadsheet.imports(name, streamData);

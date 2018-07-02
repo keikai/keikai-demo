@@ -127,9 +127,9 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
         insertDataByRow(200);
     }
 
-    private void importFile(String fileName) throws IOException, AbortedException {
+    private void importFile(String fileName) throws IOException {
         File template = new File(BOOK_FOLDER, fileName);
-        spreadsheet.importAndReplace(fileName, template);
+        spreadsheet.imports(fileName, template);
     }
 
     /**
@@ -168,7 +168,7 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
             }).run();
         };
 
-    //register spreadsheet event listeners
+        //register spreadsheet event listeners
 //		spreadsheet.addEventListener(Events.ON_SELECTION_CHANGE,listener::accept);
 //
 //    ExceptionalConsumer<RangeEvent> keyListener = (e) -> {
@@ -190,7 +190,7 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
 //		spreadsheet.addEventListener(Events.ON_KEY_DOWN,keyListener::accept);
 //		spreadsheet.addEventListener(Events.ON_CELL_RIGHT_CLICK,mouseListener::accept);
 
-		spreadsheet.addEventListener(Events.ON_EDIT_SAVE, (event)->{
+        spreadsheet.addEventListener(Events.ON_EDIT_SAVE, (event) -> {
             Double value = event.getRange().getRangeValue().getCellValue().getDoubleValue();
             System.out.println(value);
             event.getRange().setValue(value - 1);
@@ -202,7 +202,7 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
 			System.out.println(">>>"+event.getClass());
 		});
 		 */
-}
+    }
 
     /**
      * get a spreadsheet java client and getUpdateRunner spreadsheet on a browser
@@ -251,7 +251,7 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
     }
 
     @Listen("onSelect = #filelistBox")
-    public void loadServerFile() throws IOException, ExecutionException, InterruptedException, AbortedException {
+    public void loadServerFile() throws IOException, ExecutionException, InterruptedException {
         filePopup.close();
         String fileName = fileListModel.getSelection().iterator().next();
         if (spreadsheet.containsWorkbook(fileName)) {
@@ -265,7 +265,7 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
      * Can't import a book more than once, we should delete the previous book first.
      */
     @Listen("onClick = menuitem[iconSclass='z-icon-file']")
-    public void newFile() throws ExecutionException, InterruptedException, AbortedException {
+    public void newFile() throws ExecutionException, InterruptedException {
         try {
             if (spreadsheet.containsWorkbook(BLANK_XLSX)) {
                 spreadsheet.deleteWorkbook(BLANK_XLSX);
@@ -285,11 +285,7 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
     public void upload(UploadEvent e) throws IOException {
         String name = e.getMedia().getName();
         InputStream streamData = e.getMedia().getStreamData();
-        try {
-            spreadsheet.importAndReplace(name, streamData);
-        } catch (AbortedException e1) {
-            e1.printStackTrace();
-        }
+        spreadsheet.imports(name, streamData);
         FileUtils.copyInputStreamToFile(streamData, new File(BOOK_FOLDER, name));
     }
 
