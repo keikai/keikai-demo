@@ -287,6 +287,7 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
     public void makeBold() {
         Font font = selectedRange.createFont();
         font.setBold(true);
+        selectedRange.setFont(font);
     }
 
 

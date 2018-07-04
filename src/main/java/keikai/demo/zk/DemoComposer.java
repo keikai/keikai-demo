@@ -113,20 +113,14 @@ public class DemoComposer extends SelectorComposer<Component> {
 			RangeSelectEvent event = (RangeSelectEvent) e;
 			selectedRange = event.getActiveSelection();
 			//display the current cell value/formula
-			/*
-			event.getRange().loadValue().thenAccept((rangeValue) -> {
-				AsyncRender.getUpdateRunner(desktop, () -> {
-					// ignore validation on null value
-					if (rangeValue.getCellValue().isFormula()) {
-						cellValueBox.setRawValue(rangeValue.getCellValue().getFormula());
-					} else {
-						cellValueBox.setRawValue(rangeValue.getValue());
-					}
-				}).run();
-			});
-			*/
-			//display the current cell address
+			RangeValue rangeValue = event.getRange().getRangeValue();
 			AsyncRender.getUpdateRunner(desktop, () -> {
+				// ignore validation on null value
+				if (rangeValue.getCellValue().isFormula()) {
+					cellValueBox.setRawValue(rangeValue.getCellValue().getFormula());
+				} else {
+					cellValueBox.setRawValue(rangeValue.getValue());
+				}
 				((Label) getSelf().getFellow("cellAddress")).setValue(selectedRange.getA1Notation());
 			}).run();
 		};
