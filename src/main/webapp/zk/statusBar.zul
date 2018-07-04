@@ -4,7 +4,7 @@
         font: 18px bold;
         }
     </style>
-    <hlayout id="statusBar" spacing="50px" style="border: 1px solid black;padding:2px">
+    <hlayout id="statusBar" spacing="10px" style="border: 1px solid black;padding:2px">
         <label value="${serverAddress}"/>
         <label id="cell" value="A1" sclass="header"/>
         :

@@ -1,18 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <zk>
-	<!-- [Optional]
-	Uncomment if you want to defines the application's name 
-	
-	<preference>
-		<name>org.zkoss.zk.ui.WebApp.name</name>
-		<value>java-client-demo</value>
-	</preference>
-	-->
     <system-config>
          <id-generator-class>keikai.demo.ComponentIDFirstGenerator</id-generator-class>
      </system-config>
     <listener>
         <listener-class>keikai.demo.zk.SpreadsheetCleanUp</listener-class>
     </listener>
+    <library-property>
+        <name>org.zkoss.theme.preferred</name>
+        <value>breeze</value>
+    </library-property>
 </zk>
