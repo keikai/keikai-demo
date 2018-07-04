@@ -25,9 +25,7 @@ import org.zkoss.zul.*;
 
 import java.io.*;
 import java.util.HashMap;
-import java.util.concurrent.ExecutionException;
 import java.util.function.*;
-import java.util.logging.*;
 
 
 /**
@@ -60,7 +58,7 @@ public class DemoComposer extends SelectorComposer<Component> {
 	@Override
 	public void doAfterCompose(Component root) throws Exception {
 		super.doAfterCompose(root);
-//		enableSocketIOLog();
+//		KeikaiUtil.enableSocketIOLog();
 		initSpreadsheet();
 		initMenubar();
 		initFormulaBar();
@@ -69,10 +67,10 @@ public class DemoComposer extends SelectorComposer<Component> {
 	}
 
 
-	private void importFile(String fileName) throws IOException {
+	private void importFile(String fileName) throws IOException, AbortedException {
 		File template = new File(BOOK_FOLDER, fileName);
 		final Desktop desktop = getPage().getDesktop();
-//		spreadsheet.importAndReplace(fileName, template);
+		spreadsheet.importAndReplace(fileName, template);
 		fileNameLabel.setValue(fileName);
 	}
 
@@ -139,9 +137,12 @@ public class DemoComposer extends SelectorComposer<Component> {
 	public void loadServerFile() throws IOException {
 		filePopup.close();
 		String fileName = fileListModel.getSelection().iterator().next();
-		importFile(fileName);
+		try {
+			importFile(fileName);
+		} catch (AbortedException e) {
+			Clients.showNotification(e.getMessage());
+		}
 		fileListModel.clearSelection();
-		Clients.showBusy(fileNameBox, "Loading...");
 	}
 
 	/**
@@ -151,7 +152,7 @@ public class DemoComposer extends SelectorComposer<Component> {
 	public void newFile() {
 		try{
 			importFile(BLANK_XLSX);
-		}catch(IOException e){
+		}catch(Exception e){
 			Clients.showNotification(e.getMessage());
 		}
 	}
@@ -162,7 +163,7 @@ public class DemoComposer extends SelectorComposer<Component> {
 	}
 
 	@Listen("onUpload = #root")
-	public void upload(UploadEvent e) throws IOException{
+	public void upload(UploadEvent e) throws IOException, DuplicateNameException, AbortedException {
 		String name = e.getMedia().getName();
 		InputStream streamData = e.getMedia().getStreamData();
 		spreadsheet.imports(name, streamData);
@@ -176,17 +177,6 @@ public class DemoComposer extends SelectorComposer<Component> {
 		Filedownload.save(outputStream.toByteArray(), "application/excel", spreadsheet.getWorkbook().getName());
 	}
 
-
-	private void enableSocketIOLog() {
-		Logger log = Logger.getLogger("");
-		log.setLevel(Level.FINER);
-
-		ConsoleHandler handler = new ConsoleHandler();
-		handler.setFormatter(new SimpleFormatter());
-		handler.setLevel(Level.ALL);
-		log.addHandler(handler);
-	}	
-	
 	/**
 	 * Since a lambda can't throw exceptions so we need to catch it and throw an unchecked exception
 	 * @author hawk

@@ -116,7 +116,7 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
         //enable server push to update UI according to keikai async response
         root.getDesktop().enableServerPush(true);
         addEventListener();
-        initCellData();
+//        initCellData();
     }
 
     private void initStatusBar() {
@@ -127,9 +127,9 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
         insertDataByRow(200);
     }
 
-    private void importFile(String fileName) throws IOException {
+    private void importFile(String fileName) throws IOException, DuplicateNameException, AbortedException {
         File template = new File(BOOK_FOLDER, fileName);
-        spreadsheet.imports(fileName, template);
+        spreadsheet.importAndReplace(fileName, template);
     }
 
     /**
@@ -141,11 +141,6 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
             RangeSelectEvent event = (RangeSelectEvent) e;
             selectedRange = event.getActiveSelection();
             RangeValue rangeValue = event.getRange().getRangeValue();
-            if (rangeValue.getCellValue().isFormula()) {
-                cellValueBox.setRawValue(rangeValue.getCellValue().getFormula());
-            } else {
-                cellValueBox.setRawValue(rangeValue.getValue());
-            }
             Optional<CellValue> optionalCellValue = Optional.of(rangeValue.getCellValue());
 
             StringBuffer cellInfoBuffer = new StringBuffer();
@@ -163,45 +158,37 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
             optionalCellValue.map(CellValue::getStringValue)
                     .ifPresent(appendInfo);
             AsyncRender.getUpdateRunner(desktop, () -> {
+                if (rangeValue.getCellValue().isFormula()) {
+                    cellValueBox.setRawValue(rangeValue.getCellValue().getFormula());
+                } else {
+                    cellValueBox.setRawValue(rangeValue.getValue());
+                }
                 cellInfo.setValue(cellInfoBuffer.toString());
                 ((Label) getSelf().getFellow("cell")).setValue(selectedRange.getA1Notation());
             }).run();
         };
 
         //register spreadsheet event listeners
-//		spreadsheet.addEventListener(Events.ON_SELECTION_CHANGE,listener::accept);
-//
-//    ExceptionalConsumer<RangeEvent> keyListener = (e) -> {
-//        RangeKeyEvent keyEvent = (RangeKeyEvent) e;
-//        AsyncRender.getUpdateRunner(desktop, () -> {
-//            String range = keyEvent.getRange().getA1Notation().split(":")[0];
-//            keyCode.setValue(range + "[keyCode=" + keyEvent.getKeyCode() + "], shift: " + keyEvent.isShiftKey()
-//                    + ", ctrl: " + keyEvent.isCtrlKey() + ", alt: " + keyEvent.isAltKey() + ", meta: "
-//                    + keyEvent.isMetaKey());
-//        }).run();
-//    };
-//    // open a context menu
-//    ExceptionalConsumer<RangeEvent> mouseListener = (e) -> {
-//        CellMouseEvent mouseEvent = (CellMouseEvent) e;
-//        AsyncRender.getUpdateRunner(desktop, () -> {
-//            contextMenu.open(mouseEvent.getPageX(), mouseEvent.getPageY());
-//        }).run();
-//    };
-//		spreadsheet.addEventListener(Events.ON_KEY_DOWN,keyListener::accept);
-//		spreadsheet.addEventListener(Events.ON_CELL_RIGHT_CLICK,mouseListener::accept);
+		spreadsheet.addEventListener(Events.ON_SELECTION_CHANGE,listener::accept);
 
-        spreadsheet.addEventListener(Events.ON_EDIT_SAVE, (event) -> {
-            Double value = event.getRange().getRangeValue().getCellValue().getDoubleValue();
-            System.out.println(value);
-            event.getRange().setValue(value - 1);
-        });
-
-		/* FIXME throw an exception
-		spreadsheet.addEventListener(Events.ON_SHEET_ACTIVATE, (event) ->{
-			System.out.println(">>>"+event);
-			System.out.println(">>>"+event.getClass());
-		});
-		 */
+    ExceptionalConsumer<RangeEvent> keyListener = (e) -> {
+        RangeKeyEvent keyEvent = (RangeKeyEvent) e;
+        AsyncRender.getUpdateRunner(desktop, () -> {
+            String range = keyEvent.getRange().getA1Notation().split(":")[0];
+            keyCode.setValue(range + "[keyCode=" + keyEvent.getKeyCode() + "], shift: " + keyEvent.isShiftKey()
+                    + ", ctrl: " + keyEvent.isCtrlKey() + ", alt: " + keyEvent.isAltKey() + ", meta: "
+                    + keyEvent.isMetaKey());
+        }).run();
+    };
+    // open a context menu
+    ExceptionalConsumer<RangeEvent> mouseListener = (e) -> {
+        CellMouseEvent mouseEvent = (CellMouseEvent) e;
+        AsyncRender.getUpdateRunner(desktop, () -> {
+            contextMenu.open(mouseEvent.getPageX(), mouseEvent.getPageY());
+        }).run();
+    };
+		spreadsheet.addEventListener(Events.ON_KEY_DOWN,keyListener::accept);
+		spreadsheet.addEventListener(Events.ON_CELL_RIGHT_CLICK,mouseListener::accept);
     }
 
     /**
@@ -251,7 +238,7 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
     }
 
     @Listen("onSelect = #filelistBox")
-    public void loadServerFile() throws IOException, ExecutionException, InterruptedException {
+    public void loadServerFile() throws IOException, ExecutionException, InterruptedException, DuplicateNameException, AbortedException {
         filePopup.close();
         String fileName = fileListModel.getSelection().iterator().next();
         if (spreadsheet.containsWorkbook(fileName)) {
@@ -265,11 +252,8 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
      * Can't import a book more than once, we should delete the previous book first.
      */
     @Listen("onClick = menuitem[iconSclass='z-icon-file']")
-    public void newFile() throws ExecutionException, InterruptedException {
+    public void newFile() throws ExecutionException, InterruptedException, DuplicateNameException, AbortedException {
         try {
-            if (spreadsheet.containsWorkbook(BLANK_XLSX)) {
-                spreadsheet.deleteWorkbook(BLANK_XLSX);
-            }
             importFile(BLANK_XLSX);
         } catch (IOException e) {
             Clients.showNotification(e.getMessage());
@@ -282,10 +266,10 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
     }
 
     @Listen("onUpload = #root")
-    public void upload(UploadEvent e) throws IOException {
+    public void upload(UploadEvent e) throws IOException, DuplicateNameException, AbortedException {
         String name = e.getMedia().getName();
         InputStream streamData = e.getMedia().getStreamData();
-        spreadsheet.imports(name, streamData);
+        spreadsheet.importAndReplace(name, streamData);
         FileUtils.copyInputStreamToFile(streamData, new File(BOOK_FOLDER, name));
     }
 
@@ -303,23 +287,6 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
     public void makeBold() {
         Font font = selectedRange.createFont();
         font.setBold(true);
-		/* debug
-		selectedRange.loadCellStyle().thenAccept((style) ->{
-			style.getFont().setBold(true);
-			selectedRange.applyCellStyle(style);
-		});
-		CompletableFuture<List<RangeValue>> values = range.loadValues();
-		values.thenAccept((vals) -> {
-			for (RangeValue v : vals) {
-				CellValue cellValue = v.getCellValue();
-				System.out.print(v);
-				System.out.println(" [formula: " + cellValue.getFormula() +
-						", number: " + cellValue.getDoubleValue() +
-						", text: " + cellValue.getStringValue() +
-						", format: " + cellValue.getFormat() + "]");
-			}
-		});
-		 */
     }
 
 
