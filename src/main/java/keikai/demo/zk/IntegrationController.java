@@ -1,47 +1,47 @@
 package keikai.demo.zk;
 
 import io.keikai.client.api.*;
-import io.keikai.client.api.event.Events;
-import keikai.demo.Configuration;
+import io.keikai.client.api.event.*;
+import keikai.demo.*;
 import org.zkoss.chart.Charts;
 import org.zkoss.chart.model.*;
 import org.zkoss.gmaps.*;
+import org.zkoss.gmaps.event.MapMouseEvent;
 import org.zkoss.zhtml.Script;
 import org.zkoss.zk.ui.*;
 import org.zkoss.zk.ui.select.SelectorComposer;
-import org.zkoss.zk.ui.select.annotation.Wire;
+import org.zkoss.zk.ui.select.annotation.*;
 import org.zkoss.zul.Div;
 
 import java.io.*;
 import java.text.NumberFormat;
-import java.util.concurrent.*;
 
 public class IntegrationController extends SelectorComposer<Component> {
 
     private Spreadsheet fluSpreadsheet;
-    private Range selectedRange;
 
     @Wire
     private Div spreadsheetBlock;
     @Wire
     private Gmaps fluMap;
-
     @Wire
     private Charts fluChart;
 
 
     private Gmarker[] gmarkerArray;
     private final static int NUMBER_OF_GMARKER_ROW = 42;
-    //	private String prevCellValue;
-    private NumberFormat format;
+    private static final int LATITUDE_COLUMN = 4;
+    private static final int LONGITUDE_COLUMN = 5;
 
     public void doAfterCompose(Component comp) throws Exception {
         super.doAfterCompose(comp);
         getPage().getDesktop().enableServerPush(true);
-        initChart();
         initSpreadsheet();
         registerListeners();
         gmarkerArray = new Gmarker[NUMBER_OF_GMARKER_ROW];
+        initChart();
+        refreshChartData();
+        initMapMarkers();
     }
 
 
@@ -58,23 +58,34 @@ public class IntegrationController extends SelectorComposer<Component> {
         initialScript.setDefer(true);
         initialScript.setAsync(true);
         initialScript.setPage(getPage());
-        selectedRange = fluSpreadsheet.getRange("A1");
 
         String fileName = "swineFlu.xlsx";
         File file = new File(WebApps.getCurrent().getRealPath(Configuration.DEMO_BOOK_PATH), fileName);
         final Desktop desktop = getPage().getDesktop();
         try {
             fluSpreadsheet.imports(fileName, file);
-            refreshChartData();
-            initMapMarkers();
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
     private void registerListeners() {
-        fluSpreadsheet.addEventListener(Events.ON_CELL_CLICK, (event) -> {
+        fluSpreadsheet.addEventListener(Events.ON_CELL_CLICK, (RangeEvent event) -> {
+            int row = event.getRange().getRow();
+            if (row < 2 || row > 41) // check valid rows
+                return;
+            Double latitude = fluSpreadsheet.getRange(row, LATITUDE_COLUMN).getRangeValue().getCellValue().getDoubleValue();
+            Double longitude = fluSpreadsheet.getRange(row, LONGITUDE_COLUMN).getRangeValue().getCellValue().getDoubleValue();
+            AsyncRender.runUpdate(getPage().getDesktop(), () -> {
+                openMarker(row, latitude, longitude);
+            });
 
+        });
+
+        fluSpreadsheet.addEventListener(Events.ON_EDIT_SAVE, (RangeEvent event) -> {
+            AsyncRender.runUpdate(getPage().getDesktop(), () -> {
+                refreshChartData();
+            });
         });
     }
 
@@ -89,239 +100,72 @@ public class IntegrationController extends SelectorComposer<Component> {
         fluChart.setModel(new DefaultPieModel());
     }
 
-    private void refreshChartData() throws ExecutionException, InterruptedException {
-
+    private void refreshChartData() {
         PieModel model = (PieModel) fluChart.getModel();
         model.clear();
 
         for (int row = 45; row < 53; row++) {
-            /*
-            CompletableFuture<RangeValue> rangeFuture = fluSpreadsheet.getRange(row, 0).loadValue();
-
-            rangeFuture.thenCombineAsync(fluSpreadsheet.getRange(row, 1).loadValue(),
-                    (rangeValue1, rangeValue2) -> {
-                        String name = rangeValue1.getCellValue().getStringValue();
-                        Double nCases = rangeValue2.getCellValue().getDoubleValue();
-                        AsyncRender.getUpdateRunner(getPage().getDesktop(), () -> {
-                            model.setValue(name, nCases);
-                        }).run();
-                        return rangeFuture; //TODO might be incorrect return value
-                    });
-                    */
+            String name = fluSpreadsheet.getRange(row, 0).getValue();
+            Double nCases = fluSpreadsheet.getRange(row, 1).getRangeValue().getCellValue().getDoubleValue();
+            model.setValue(name, nCases);
         }
     }
 
     private void initMapMarkers() {
         fluMap.setZoom(5);
         for (int row = 2; row < NUMBER_OF_GMARKER_ROW; row++) {
-//			CompletableFuture<RangeValue> stateRangeFuture = fluSpreadsheet.getRange(row, 0).loadValue();
-//			CompletableFuture<RangeValue> nCaseRangeFuture = fluSpreadsheet.getRange(row, 1).loadValue();
-//			CompletableFuture<RangeValue> nDeathRangeFuture = fluSpreadsheet.getRange(row, 2).loadValue();
-//            CompletableFuture<RangeValue> latRangeFuture = fluSpreadsheet.getRange(row, 4).loadValue();
-//            CompletableFuture<RangeValue> lngRangeFuture = fluSpreadsheet.getRange(row, 5).loadValue();
-//			CompletableFuture.allOf(stateRangeFuture , nCaseRangeFuture, nDeathRangeFuture, latRangeFuture, lngCaseRangeFuture);
-			/*
-            latRangeFuture.thenCombineAsync(lngRangeFuture, (latRangeValue, lngRangeValue) -> {
-                double lat = latRangeValue.getCellValue().getDoubleValue();
-                double lng = lngRangeValue.getCellValue().getDoubleValue();
-                AsyncRender.getUpdateRunner(getPage().getDesktop(), () -> {
-                    Gmarker gmarker = new Gmarker();
-                    gmarker.setLat(lat);
-                    gmarker.setLng(lng);
-                    gmarker.setContent(" ");
-                    fluMap.appendChild(gmarker);
-                }).run();
-                return latRangeFuture;
-            });
-			String state = Ranges.range(sheet, row, 0).getCellEditText();
+            String state = fluSpreadsheet.getRange(row, 0).getValue();
+            Double nCase = fluSpreadsheet.getRange(row, 1).getRangeValue().getCellValue().getDoubleValue();
+            Double nDeath = fluSpreadsheet.getRange(row, 2).getRangeValue().getCellValue().getDoubleValue();
+            String description = fluSpreadsheet.getRange(row, 3).getValue();
+            Double latitude = fluSpreadsheet.getRange(row, LATITUDE_COLUMN).getRangeValue().getCellValue().getDoubleValue();
+            Double longitude = fluSpreadsheet.getRange(row, LONGITUDE_COLUMN).getRangeValue().getCellValue().getDoubleValue();
 
-			int numOfCase = parseInt(Ranges.range(sheet, row, 1)
-					.getCellEditText());
+            Gmarker gmarker = new Gmarker();
+            gmarker.setLat(latitude);
+            gmarker.setLng(longitude);
+            String content = "<span style=\"color:#346b93;font-weight:bold\">" +
+                    state +
+                    "</span><br/><span style=\"color:red\">" +
+                    nCase +
+                    "</span> cases<br/><span style=\"color:red\">" +
+                    nDeath +
+                    "</span> death<div style=\"background-color:#E8F5Cf;padding:2px\">" +
+                    description + "</div>";
+            gmarker.setContent(content);
 
-			int numOfDeath = parseInt(Ranges.range(sheet, row, 2)
-					.getCellEditText());
+            gmarkerArray[row] = gmarker;
+            fluMap.appendChild(gmarker);
 
-			String description = Ranges.range(sheet, row, 3).getCellEditText();
-			double lat = parseDouble(Ranges.range(sheet, row, 4)
-					.getCellEditText());
-			double lng = parseDouble(Ranges.range(sheet, row, 5)
-					.getCellEditText());
-			String content = "<span style=\"color:#346b93;font-weight:bold\">" +
-					state +
-					"</span><br/><span style=\"color:red\">" +
-					numOfCase +
-					"</span> cases<br/><span style=\"color:red\">" +
-					numOfDeath +
-					"</span> death<div style=\"background-color:#E8F5Cf;padding:2px\">" +
-					description + "</div>";
-
-			Gmarker gmarker = new Gmarker();
-			gmarkerArray[row] = gmarker;
-			gmarker.setLat(lat);
-			gmarker.setLng(lng);
-			gmarker.setContent(content);
-			fluMap.appendChild(gmarker);
-
-			if (row == 2) {
-				fluMap.setLat(lat);
-				fluMap.setLng(lng);
-				gmarkerArray[row].setOpen(true);
-			}
-
-		*/
+            if (row == 2) {
+                gmarkerArray[row].setOpen(true);
+            }
         }
     }
 
-	/*
-	@Listen("onCellFocus = #fluSpreadsheet")
-	public void onFocus(CellEvent event) throws ParseException {
-		if (fluMap == null || sheet == null)
-			return;
+    @Listen("onMapClick = #fluMap")
+    public void selectMarker(MapMouseEvent event) {
+        Gmarker marker = event.getGmarker();
+        if (marker != null) {
+            for (Gmarker gmarker : gmarkerArray) {
+                if (gmarker != null){
+                    if (marker == gmarker) {
+                        gmarker.setOpen(!marker.isOpen());
+                    } else if (gmarker.isOpen()) {
+                        gmarker.setOpen(false);
+                    }
+                }
+            }
+        }
+    }
 
-		Sheet sheet = event.getSheet();
-		row = event.getRow();
-		col = event.getColumn();
-		prevCellValue = Ranges.range(sheet, row, col).getCellEditText();
-		if (row < 2 || row > 41)// the header row
-			return;
-
-		double lat = parseDouble(Ranges.range(sheet, row, 4).getCellEditText());
-		double lng = parseDouble(Ranges.range(sheet, row, 5).getCellEditText());
-
-		fluMap.setLat(lat);
-		fluMap.setLng(lng);
+	private void openMarker(int row, Double latitude, Double longitude) {
+		fluMap.setLat(latitude);
+		fluMap.setLng(longitude);
 		for (Gmarker gmarker : gmarkerArray) {
 			if (gmarker != null && gmarker.isOpen())
 				gmarker.setOpen(false);
 		}
 		gmarkerArray[row].setOpen(true);
 	}
-
-	@Listen("onEditboxEditing = #fluSpreadsheet")
-	public void onEditboxEditingEvent(EditboxEditingEvent event)
-			throws ParseException {
-		if (sheet == null || fluMap == null)
-			return;
-
-		String str = (String) event.getEditingValue();
-		if (col != 1 && col != 2) {
-			setCellEditText(sheet, row, col, str);
-		}
-		if (row > 0 && row < NUMBER_OF_GMARKER_ROW) {
-			updateRow(row, false);
-		}
-	}
-
-	@Listen("onStopEditing = #fluSpreadsheet")
-	public void onStopEditingEvent(StopEditingEvent event)
-			throws ParseException {
-		if (sheet == null || fluChart == null)
-			return;
-		event.cancel();// set data manually;
-		row = event.getRow();
-		col = event.getColumn();
-		String str = (String) event.getEditingValue();
-		if (col == 1 || col == 2) {
-			Double val = null;
-			try {
-				val = format.parse(str).doubleValue();
-				setCellEditText(sheet, row, col, str);
-			} catch (ParseException e) {
-				final Integer rowIdx = Integer.valueOf(row);
-				final Integer colIdx = Integer.valueOf(col);
-				final String prevValue = prevCellValue;
-				Messagebox.show("Cell value has to be number format", "Error",
-						Messagebox.OK, Messagebox.EXCLAMATION,
-						new SerializableEventListener<Event>() {
-							private static final long serialVersionUID = 846217931006240721L;
-
-							public void onEvent(Event event) throws Exception {
-								setCellEditText(sheet, rowIdx, colIdx,
-										prevValue);
-							}
-						});
-				return;
-			}
-		} else {
-			setCellEditText(sheet, row, col, str);
-		}
-		if (row != 0) {// the header row
-			updateRow(row, true);
-		}
-		if (col == 1) {
-			refreshChartData();
-		}
-	}
-
-	@Listen("onMapClick = #fluMap")
-	public void selectMarker(MapMouseEvent event) {
-		Gmarker marker = event.getGmarker();
-		if (marker != null) {
-			for (Gmarker gmarker : gmarkerArray) {
-				if (gmarker != null){
-					if (marker == gmarker) {
-						gmarker.setOpen(!marker.isOpen());
-					} else if (gmarker.isOpen()) {
-						gmarker.setOpen(false);
-					}
-				}
-			}
-		}
-	}
-
-
-
-
-
-	private void updateRow(int row, boolean evalValue) throws ParseException {
-		if (fluMap == null || sheet == null
-				|| Ranges.range(sheet, row, 3).getCellData().isBlank())
-			return;
-
-		String state = Ranges.range(sheet, row, 0).getCellEditText();
-		int numOfCase = parseInt(Ranges.range(sheet, row, 1).getCellEditText());
-		int numOfDeath = parseInt(Ranges.range(sheet, row, 2).getCellEditText());
-
-		String description = Ranges.range(sheet, row, 3).getCellEditText();
-
-		double lat = parseDouble(Ranges.range(sheet, row, 4).getCellEditText());
-		double lng = parseDouble(Ranges.range(sheet, row, 5).getCellEditText());
-		String content = "<span style=\"color:#346b93;font-weight:bold\">" +
-				state +
-				"</span><br/><span style=\"color:red\">" +
-				numOfCase +
-				"</span> cases<br/><span style=\"color:red\">" +
-				numOfDeath +
-				"</span> death<div style=\"background-color:#E8F5Cf;padding:2px\">" +
-				description + "</div>";
-
-		gmarkerArray[row].setContent(content);
-		fluMap.setLat(lat);
-		fluMap.setLng(lng);
-		gmarkerArray[row].setOpen(true);
-	}
-
-	private void setCellEditText(Sheet sheet, int row, int col, String text) {
-		try {
-			Ranges.range(sheet, row, col).setCellEditText(text);
-		} catch (IllegalFormulaException x) {
-		}
-	}
-	private double parseDouble(String text) {
-		try {
-			return format.parse(text).doubleValue();
-		} catch (ParseException e) {
-			return 0D;
-		}
-	}
-
-	private int parseInt(String text) {
-		try {
-			return format.parse(text).intValue();
-		} catch (ParseException e) {
-			return 0;
-		}
-	}
-	*/
-
 }
