@@ -15,7 +15,8 @@ import io.keikai.client.api.*;
 import io.keikai.client.api.Fill.PatternFill;
 import io.keikai.client.api.event.*;
 import io.keikai.client.api.event.Events;
-import io.keikai.util.Converter;
+import io.keikai.client.api.ui.UiActivity;
+import io.keikai.util.*;
 import keikai.demo.*;
 import org.apache.commons.io.FileUtils;
 import org.zkoss.zhtml.Script;
@@ -97,6 +98,8 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
     private Hlayout statusBar;
     @Wire
     private Popup info;
+    @Wire
+    private Popup imagePopup;
 
     private ListModelList<String> fileListModel;
     final private File BOOK_FOLDER = new File(getPage().getDesktop().getWebApp().getRealPath("/book/"));
@@ -169,33 +172,64 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
         };
 
         //register spreadsheet event listeners
-		spreadsheet.addEventListener(Events.ON_SELECTION_CHANGE,listener::accept);
+        spreadsheet.addEventListener(Events.ON_SELECTION_CHANGE, listener::accept);
 
-    ExceptionalConsumer<RangeEvent> keyListener = (e) -> {
-        RangeKeyEvent keyEvent = (RangeKeyEvent) e;
-        AsyncRender.getUpdateRunner(desktop, () -> {
-            String range = keyEvent.getRange().getA1Notation().split(":")[0];
-            keyCode.setValue(range + "[keyCode=" + keyEvent.getKeyCode() + "], shift: " + keyEvent.isShiftKey()
-                    + ", ctrl: " + keyEvent.isCtrlKey() + ", alt: " + keyEvent.isAltKey() + ", meta: "
-                    + keyEvent.isMetaKey());
-        }).run();
-    };
-    // open a context menu
-    ExceptionalConsumer<RangeEvent> mouseListener = (e) -> {
-        CellMouseEvent mouseEvent = (CellMouseEvent) e;
-        AsyncRender.getUpdateRunner(desktop, () -> {
-            contextMenu.open(mouseEvent.getPageX(), mouseEvent.getPageY());
-        }).run();
-    };
-		spreadsheet.addEventListener(Events.ON_KEY_DOWN,keyListener::accept);
-		spreadsheet.addEventListener(Events.ON_CELL_RIGHT_CLICK,mouseListener::accept);
+        ExceptionalConsumer<RangeEvent> keyListener = (e) -> {
+            RangeKeyEvent keyEvent = (RangeKeyEvent) e;
+            AsyncRender.getUpdateRunner(desktop, () -> {
+                String range = keyEvent.getRange().getA1Notation().split(":")[0];
+                keyCode.setValue(range + "[keyCode=" + keyEvent.getKeyCode() + "], shift: " + keyEvent.isShiftKey()
+                        + ", ctrl: " + keyEvent.isCtrlKey() + ", alt: " + keyEvent.isAltKey() + ", meta: "
+                        + keyEvent.isMetaKey());
+            }).run();
+        };
+        // open a context menu
+        ExceptionalConsumer<RangeEvent> mouseListener = (e) -> {
+            CellMouseEvent mouseEvent = (CellMouseEvent) e;
+            AsyncRender.getUpdateRunner(desktop, () -> {
+                contextMenu.open(mouseEvent.getPageX(), mouseEvent.getPageY());
+            }).run();
+        };
+        spreadsheet.addEventListener(Events.ON_KEY_DOWN, keyListener::accept);
+        spreadsheet.addEventListener(Events.ON_CELL_RIGHT_CLICK, mouseListener::accept);
+        spreadsheet.setUiActivityCallback(new UiActivity() {
+            public void onConnect() {
+                System.out.println(">>connected");
+            }
+
+            public void onDisconnect() {
+                System.out.println(">>disconnected");
+                spreadsheet.close();
+            }
+        });
+
+        ExceptionalConsumer<RangeEvent> mouseHoverListener = (e) -> {
+            CellMouseEvent mouseEvent = (CellMouseEvent) e;
+            if (e.getName().equals(Events.ON_CELL_MOUSE_ENTER)){
+                if (e.getRange().getValue().equals("zk")) {
+                    AsyncRender.getUpdateRunner(desktop, () -> {
+                        imagePopup.open(mouseEvent.getPageX(), mouseEvent.getPageY());
+                    }).run();
+                }
+            }else{
+                if (imagePopup.isVisible()) {
+                    AsyncRender.getUpdateRunner(desktop, () -> {
+                        imagePopup.close();
+                    }).run();
+                }
+            }
+        };
+        spreadsheet.addEventListener(Events.ON_CELL_MOUSE_ENTER, mouseHoverListener::accept);
+        spreadsheet.addEventListener(Events.ON_CELL_MOUSE_LEAVE, mouseHoverListener::accept);
     }
 
     /**
      * get a spreadsheet java client and getUpdateRunner spreadsheet on a browser
      */
     private void initSpreadsheet() {
-        spreadsheet = Keikai.newClient(getKeikaiServerAddress()); //connect to keikai server
+        Settings settings = Settings.DEFAULT_SETTINGS.clone();
+        enableMouseHover(settings);
+        spreadsheet = Keikai.newClient(getKeikaiServerAddress(), settings); //connect to keikai server
         getPage().getDesktop().setAttribute(SpreadsheetCleanUp.SPREADSHEET, spreadsheet); //make spreadsheet get closed
         //pass target element's id and get keikai script URI
         String scriptUri = spreadsheet.getURI(getSelf().getFellow("myss").getUuid());
@@ -208,9 +242,13 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
         selectedRange = spreadsheet.getRange("A1");
     }
 
+    private void enableMouseHover(Settings settings ) {
+        settings.set(Settings.Key.SPREADSHEET_CONFIG, Maps.toMap("enableMouseEvent", true));
+    }
+
     private String getKeikaiServerAddress() {
         String ip = Executions.getCurrent().getParameter("server");
-        return ip == null ? Configuration.KEIKAI_SERVER : "http://" + ip;
+        return ip == null ? Configuration.INTERNAL_KEIKAI_SERVER : "http://" + ip;
     }
 
     private void initMenubar() {

@@ -1,19 +1,24 @@
-<menupopup id="contextMenu">
-    <menuitem label="Delete row" id="deleteEntireRow"/>
-    <menuitem label="Delete column" id="deleteEntireColumn"/>
-    <menu label="Delete Cells">
-        <menupopup>
-            <menuitem label="Shift left" />
-            <menuitem label="Shift up" />
-        </menupopup>
-    </menu>
-    <menuitem label="Insert row" />
-    <menuitem label="Insert column" id="insertEntireColumn"/>
-    <menu label="Insert Cells">
-        <menupopup>
-            <menuitem label="Shift down" />
-            <menuitem label="Shift right" />
-        </menupopup>
-    </menu>
-    <menuitem label="Fill" popup="fillPopup"/>
-</menupopup>
+<zk>
+    <menupopup id="contextMenu">
+        <menuitem label="Delete row" id="deleteEntireRow"/>
+        <menuitem label="Delete column" id="deleteEntireColumn"/>
+        <menu label="Delete Cells">
+            <menupopup>
+                <menuitem label="Shift left"/>
+                <menuitem label="Shift up"/>
+            </menupopup>
+        </menu>
+        <menuitem label="Insert row"/>
+        <menuitem label="Insert column" id="insertEntireColumn"/>
+        <menu label="Insert Cells">
+            <menupopup>
+                <menuitem label="Shift down"/>
+                <menuitem label="Shift right"/>
+            </menupopup>
+        </menu>
+        <menuitem label="Fill" popup="fillPopup"/>
+    </menupopup>
+    <popup id="imagePopup">
+        <image src="/zk/zklogo.png"/>
+    </popup>
+</zk>
