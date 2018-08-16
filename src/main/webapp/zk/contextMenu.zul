@@ -19,6 +19,6 @@
         <menuitem label="Fill" popup="fillPopup"/>
     </menupopup>
     <popup id="imagePopup">
-        <image src="/zk/zklogo.png"/>
+        <image src="/resources/images/zklogo.png"/>
     </popup>
 </zk>
