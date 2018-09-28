@@ -6,7 +6,7 @@
 	<version>0.0.1-SNAPSHOT</version>
 	<properties>
 		<zk.version>8.5.1</zk.version>
-		<keikai.version>1.0.0-beta.1-Eval</keikai.version>
+		<keikai.version>1.0.0-beta.3-Eval</keikai.version>
 		<selenium.version>2.53.1</selenium.version>
 		<maven.build.timestamp.format>yyyy-MM-dd</maven.build.timestamp.format>
 		<packname>-${project.version}-FL-${maven.build.timestamp}</packname>
@@ -54,12 +54,18 @@
 		</dependency>
         <dependency>
             <groupId>org.zkoss.zk</groupId>
-            <artifactId>zhtml</artifactId>
+            <artifactId>zkmax</artifactId>
             <version>${zk.version}</version>
+			<exclusions>
+				<exclusion>
+					<groupId>org.slf4j</groupId>
+					<artifactId>slf4j-jdk14</artifactId>
+				</exclusion>
+			</exclusions>
         </dependency>
         <dependency>
             <groupId>org.zkoss.zk</groupId>
-            <artifactId>zkmax</artifactId>
+            <artifactId>zhtml</artifactId>
             <version>${zk.version}</version>
         </dependency>
         <dependency>
