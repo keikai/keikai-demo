@@ -19,7 +19,9 @@ import io.keikai.client.api.ui.UiActivity;
 import io.keikai.util.*;
 import keikai.demo.*;
 import org.apache.commons.io.FileUtils;
+import org.slf4j.*;
 import org.zkoss.zhtml.Script;
+import org.zkoss.zk.scripting.Interpreters;
 import org.zkoss.zk.ui.*;
 import org.zkoss.zk.ui.event.*;
 import org.zkoss.zk.ui.select.SelectorComposer;
@@ -44,6 +46,7 @@ import static io.keikai.client.api.Range.*;
  * @author Hawk
  */
 public class SpreadsheetComposer extends SelectorComposer<Component> {
+    private static final Logger logger = LoggerFactory.getLogger(SpreadsheetComposer.class);
     public static final String BLANK_XLSX = "blank.xlsx";
     private static final int MAX_COLUMN = 10; //the max column to insert data
     private Spreadsheet spreadsheet;
@@ -139,12 +142,16 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
      * add event listeners for spreadsheet
      */
     private void addEventListener() {
+        spreadsheet.addExceptionHandler(throwable -> {
+            logger.error("Error inside spreadsheet", throwable);
+        });
+
         final Desktop desktop = getSelf().getDesktop();
         ExceptionalConsumer<RangeEvent> listener = (e) -> {
             RangeSelectEvent event = (RangeSelectEvent) e;
             selectedRange = event.getActiveSelection();
             RangeValue rangeValue = event.getRange().getRangeValue();
-            Optional<CellValue> optionalCellValue = Optional.of(rangeValue.getCellValue());
+            Optional<CellValue> optionalCellValue = Optional.ofNullable(rangeValue.getCellValue());
 
             StringBuffer cellInfoBuffer = new StringBuffer();
             Consumer appendInfo = (value) -> {
@@ -161,7 +168,8 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
             optionalCellValue.map(CellValue::getStringValue)
                     .ifPresent(appendInfo);
             AsyncRender.getUpdateRunner(desktop, () -> {
-                if (rangeValue.getCellValue().isFormula()) {
+                if (optionalCellValue.isPresent()
+                    && optionalCellValue.get().isFormula()) {
                     cellValueBox.setRawValue(rangeValue.getCellValue().getFormula());
                 } else {
                     cellValueBox.setRawValue(rangeValue.getValue());
