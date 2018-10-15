@@ -116,7 +116,7 @@ public class DemoComposer extends SelectorComposer<Component> {
 			RangeValue rangeValue = event.getRange().getRangeValue();
 			AsyncRender.getUpdateRunner(desktop, () -> {
 				// ignore validation on null value
-				if (rangeValue.getCellValue().isFormula()) {
+				if (rangeValue.getCellValue() != null && rangeValue.getCellValue().isFormula()) {
 					cellValueBox.setRawValue(rangeValue.getCellValue().getFormula());
 				} else {
 					cellValueBox.setRawValue(rangeValue.getValue());
