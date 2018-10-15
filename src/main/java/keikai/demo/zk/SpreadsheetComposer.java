@@ -202,14 +202,15 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
         spreadsheet.addEventListener(Events.ON_CELL_RIGHT_CLICK, mouseListener::accept);
         spreadsheet.setUiActivityCallback(new UiActivity() {
             public void onConnect() {
-                System.out.println(">>connected");
+                logger.debug(">>connected");
             }
 
             public void onDisconnect() {
-                System.out.println(">>disconnected");
+                logger.debug(">>disconnected");
                 spreadsheet.close();
             }
         });
+
 
         ExceptionalConsumer<RangeEvent> mouseHoverListener = (e) -> {
             CellMouseEvent mouseEvent = (CellMouseEvent) e;
