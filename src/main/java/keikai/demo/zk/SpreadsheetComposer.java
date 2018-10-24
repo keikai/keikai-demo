@@ -228,8 +228,8 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
                 }
             }
         };
-        spreadsheet.addEventListener(Events.ON_CELL_MOUSE_ENTER, mouseHoverListener::accept);
-        spreadsheet.addEventListener(Events.ON_CELL_MOUSE_LEAVE, mouseHoverListener::accept);
+//        spreadsheet.addEventListener(Events.ON_CELL_MOUSE_ENTER, mouseHoverListener::accept);
+//        spreadsheet.addEventListener(Events.ON_CELL_MOUSE_LEAVE, mouseHoverListener::accept);
     }
 
     /**
@@ -257,7 +257,7 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
 
     private String getKeikaiServerAddress() {
         String ip = Executions.getCurrent().getParameter("server");
-        return ip == null ? Configuration.INTERNAL_KEIKAI_SERVER : "http://" + ip;
+        return ip == null ? Configuration.LOCAL_KEIKAI_SERVER: "http://" + ip;
     }
 
     private void initMenubar() {

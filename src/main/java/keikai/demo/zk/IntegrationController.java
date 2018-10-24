@@ -44,11 +44,10 @@ public class IntegrationController extends SelectorComposer<Component> {
         initMapMarkers();
     }
 
-
     /* get a spreadsheet java client and getUpdateRunner spreadsheet on a browser
      */
     private void initSpreadsheet() {
-        fluSpreadsheet = Keikai.newClient(Configuration.DEMO_SERVER); //connect to keikai server
+        fluSpreadsheet = Keikai.newClient(Configuration.LOCAL_KEIKAI_SERVER); //connect to keikai server
         getPage().getDesktop().setAttribute(SpreadsheetCleanUp.SPREADSHEET, fluSpreadsheet); //make spreadsheet get closed
         //pass target element's id and get keikai script URI
         String scriptUri = fluSpreadsheet.getURI(spreadsheetBlock.getUuid());
