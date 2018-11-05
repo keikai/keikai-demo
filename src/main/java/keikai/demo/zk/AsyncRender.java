@@ -5,8 +5,8 @@ import org.zkoss.zk.ui.*;
 import java.util.function.Consumer;
 
 /**
- * In an asynchronous thread, to update ZK components requires activating a desktop first and deactivating after accessing ZK Components. (Please refer to <a href="https://www.zkoss.org/wiki/ZK_Developer%27s_Guide/Advanced_ZK/Long_Operations/Alternative_1:_Server_Push">ZK Developer's_Guide/Advanced_ZK/Long_Operations/Alternative_1:_Server_Push</a>)
- * This class helps you activate and deactivate, so you just need to pass a function that implements your rendering logic.
+ * In a thread without ZK execution available, to update ZK components requires activating a desktop first and deactivating after accessing ZK Components. (Please refer to <a href="https://www.zkoss.org/wiki/ZK_Developer%27s_Guide/Advanced_ZK/Long_Operations/Alternative_1:_Server_Push">ZK Developer's_Guide/Advanced_ZK/Long_Operations/Alternative_1:_Server_Push</a>)
+ * This class helps you activate and deactivate a desktop, so you just need to pass a function that implements your rendering logic that calls ZK components' API.
  * 
  */
 public class AsyncRender {
