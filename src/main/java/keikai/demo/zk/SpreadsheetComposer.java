@@ -15,7 +15,7 @@ import io.keikai.client.api.*;
 import io.keikai.client.api.Fill.PatternFill;
 import io.keikai.client.api.event.*;
 import io.keikai.client.api.event.Events;
-import io.keikai.client.api.ui.UiActivity;
+import io.keikai.client.api.ui.UIActivity;
 import io.keikai.util.*;
 import keikai.demo.*;
 import org.apache.commons.io.FileUtils;
@@ -200,7 +200,7 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
         };
         spreadsheet.addEventListener(Events.ON_KEY_DOWN, keyListener::accept);
         spreadsheet.addEventListener(Events.ON_CELL_RIGHT_CLICK, mouseListener::accept);
-        spreadsheet.setUiActivityCallback(new UiActivity() {
+        spreadsheet.setUIActivityCallback(new UIActivity() {
             public void onConnect() {
                 logger.debug(">>connected");
             }
