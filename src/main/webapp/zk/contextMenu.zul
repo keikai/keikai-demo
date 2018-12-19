@@ -1,5 +1,5 @@
-<zk>
-    <menupopup id="contextMenu">
+<zk xmlns:ca="client/attribute">
+    <menupopup id="contextMenu"ca:onContextmenu="event.preventDefault();" >
         <menuitem label="Delete row" id="deleteEntireRow"/>
         <menuitem label="Delete column" id="deleteEntireColumn"/>
         <menu label="Delete Cells">
