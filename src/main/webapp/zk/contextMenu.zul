@@ -1,5 +1,5 @@
 <zk xmlns:ca="client/attribute">
-    <menupopup id="contextMenu" ca:onContextmenu="event.preventDefault();" >
+    <menupopup id="contextMenu" ca:onContextmenu="event.preventDefault();" apply="keikai.demo.zk.ContextMenuComposer">
         <menuitem label="Delete row" id="deleteEntireRow"/>
         <menuitem label="Delete column" id="deleteEntireColumn"/>
         <menu label="Delete Cells">
@@ -16,9 +16,5 @@
                 <menuitem label="Shift right"/>
             </menupopup>
         </menu>
-        <menuitem label="Fill" popup="fillPopup"/>
     </menupopup>
-    <popup id="imagePopup">
-        <image src="/resources/images/zklogo.png"/>
-    </popup>
 </zk>
