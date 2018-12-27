@@ -121,9 +121,13 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
         insertDataByRow(200);
     }
 
-    private void importFile(String fileName) throws IOException, DuplicateNameException, AbortedException {
+    private void importFile(String fileName){
         File template = new File(BOOK_FOLDER, fileName);
-        spreadsheet.importAndReplace(fileName, template);
+        try {
+            spreadsheet.importAndReplace(fileName, template);
+        } catch (AbortedException | FileNotFoundException e) {
+            e.printStackTrace();
+        }
     }
 
     /**
@@ -325,19 +329,19 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
      */
     @Listen("onClick = menuitem[iconSclass='z-icon-bold']")
     public void makeBold() {
-        Font font = selectedRange.createFont();
+        Font font = spreadsheet.getActiveSelection().createFont();
         font.setBold(true);
-        selectedRange.setFont(font);
+        spreadsheet.getActiveSelection().setFont(font);
     }
 
 
     @Listen("onClick = #applyFill")
     public void changeFillPattern(Event e) {
-        PatternFill fill = selectedRange.createPatternFill();
+        PatternFill fill = spreadsheet.getActiveSelection().createPatternFill();
         fill.setPatternType(((Selectable<PatternFill.PatternType>) fillPatternBox.getModel()).getSelection().iterator().next());
         fill.setForegroundColor(((Colorbox) e.getTarget().getFellow("foregroundColorBox")).getValue());
         fill.setBackgroundColor(((Colorbox) e.getTarget().getFellow("backgroundColorBox")).getValue());
-        selectedRange.setFill(fill);
+        spreadsheet.getActiveSelection().setFill(fill);
     }
 
     @Listen("onChange = #cellValue")
@@ -348,12 +352,12 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
 
     @Listen("onClick = #clearContents")
     public void clearContents(Event event) {
-        selectedRange.clearContents();
+        spreadsheet.getActiveSelection().clearContents();
     }
 
     @Listen("onClick = menuitem[label='wrap']")
     public void wrap() {
-        selectedRange.setWrapText(true);
+        spreadsheet.getActiveSelection().setWrapText(true);
     }
 
     @Listen("onChange = #focusTo")
@@ -372,16 +376,16 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
     @Listen("onClick = #applyBorder")
     public void applyBorders(Event evt) {
         BorderIndex borderIndex = (BorderIndex) borderIndexBox.getModel().getElementAt(borderIndexBox.getSelectedIndex());
-        Borders borders = selectedRange.createBorders(borderIndex);
+        Borders borders = spreadsheet.getActiveSelection().createBorders(borderIndex);
 
         Border.Style borderLineStyle = (Border.Style) borderLineStyleBox.getModel().getElementAt(borderLineStyleBox.getSelectedIndex());
         borders.setStyle(borderLineStyle);
 
         borders.setColor(borderColorBox.getValue());
-        selectedRange.setBorders(borders);
+        spreadsheet.getActiveSelection().setBorders(borders);
 
         //debug
-//		selectedRange.loadCellStyle()
+//		spreadsheet.getActiveSelection().loadCellStyle()
 //			.thenAccept((cellStyle -> {
 //				System.out.println(cellStyle.getBorders().toString());
 //			}));
@@ -390,14 +394,14 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
     @Listen("onClick = #clearBorder")
     public void clearBorders(Event evt) throws ExecutionException, InterruptedException {
         //FIXME doesn't clear inside vertical and horizontal
-        Borders borders = selectedRange.getCellStyle().getBorders();
+        Borders borders = spreadsheet.getActiveSelection().getCellStyle().getBorders();
         borders.setStyle(Border.Style.None);
-        selectedRange.setBorders(borders);
+        spreadsheet.getActiveSelection().setBorders(borders);
     }
 
     @Listen("onClick = #filterClear")
     public void clearFilter() {
-        selectedRange.clearAutoFilter();
+        spreadsheet.getActiveSelection().clearAutoFilter();
     }
 
     @Listen("onClick = #filterBtn")
@@ -411,7 +415,7 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
             criterial1 = fcStr1.isEmpty() ? null : fcStr1;
         }
 
-        selectedRange.setAutoFilter(field, criterial1,
+        spreadsheet.getActiveSelection().setAutoFilter(field, criterial1,
                 ((Selectable<AutoFilterOperator>) filterOperator.getModel()).getSelection().iterator().next(), null, true);
         filterPopup.close();
     }
@@ -432,13 +436,13 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
 
     @Listen("onClick = #applyFormat")
     public void applyFormat(Event e) {
-        selectedRange.setNumberFormat(((Textbox) e.getTarget().getFellow("numfmt")).getText());
+        spreadsheet.getActiveSelection().setNumberFormat(((Textbox) e.getTarget().getFellow("numfmt")).getText());
         ((Popup) e.getTarget().getFellow("formatPopup")).close();
     }
 
     @Listen("onClick = #applyValidation")
     public void applyValidation(Event e) {
-        DataValidation validation = selectedRange.createDataValidation();
+        DataValidation validation = spreadsheet.getActiveSelection().createDataValidation();
         validation.setFormula1(validationFormulaBox.getValue());
         validation.setType(DataValidation.Type.List); //currently-supported type
         validation.setAlertStyle(DataValidation.AlertStyle.Stop);
@@ -446,13 +450,13 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
         validation.setInputMessage(inputMsgBox.getValue());
         validation.setErrorTitle(errorTitleBox.getValue());
         validation.setErrorMessage(errorMsgBox.getValue());
-        selectedRange.setDataValidation(validation);
+        spreadsheet.getActiveSelection().setDataValidation(validation);
         ((Popup) e.getTarget().getFellow("validationPopup")).close();
     }
 
     @Listen("onClick = #clearValidation")
     public void clearValidation(Event e) {
-        selectedRange.clearDataValidation();
+        spreadsheet.getActiveSelection().clearDataValidation();
     }
 
     /**
@@ -463,7 +467,7 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
      */
     @Listen("onClick = #showStyle")
     public void showCellStyle() throws InterruptedException, ExecutionException {
-        CellStyle style = selectedRange.getCellStyle();
+        CellStyle style = spreadsheet.getActiveSelection().getCellStyle();
 //        ((Label) info.getFirstChild()).setValue(style.toString());
 //        info.open(info.getPreviousSibling(), "after_center");
 
@@ -472,27 +476,27 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
 
     @Listen("onClick = #lockSelection")
     public void lockSelection() throws ExecutionException, InterruptedException {
-        PatternFill fill = selectedRange.createPatternFill();
+        PatternFill fill = spreadsheet.getActiveSelection().createPatternFill();
         fill.setBackgroundColor("#00ff00");
-        selectedRange.setFill(fill);
-        CellStyle style = selectedRange.createCellStyle();
+        spreadsheet.getActiveSelection().setFill(fill);
+        CellStyle style = spreadsheet.getActiveSelection().createCellStyle();
         Protection protection = style.createProtection();
         protection.setLocked(true);
         style.setProtection(protection);
-        selectedRange.setCellStyle(style);
+        spreadsheet.getActiveSelection().setCellStyle(style);
 
     }
 
     @Listen("onClick = #unlockSelection")
     public void unlockSelection() throws ExecutionException, InterruptedException {
-        PatternFill fill = selectedRange.createPatternFill();
+        PatternFill fill = spreadsheet.getActiveSelection().createPatternFill();
         fill.setBackgroundColor("#00ff00");
-        selectedRange.setFill(fill);
-        CellStyle style = selectedRange.createCellStyle();
+        spreadsheet.getActiveSelection().setFill(fill);
+        CellStyle style = spreadsheet.getActiveSelection().createCellStyle();
         Protection protection = style.createProtection();
         protection.setLocked(false);
         style.setProtection(protection);
-        selectedRange.setCellStyle(style);
+        spreadsheet.getActiveSelection().setCellStyle(style);
     }
 
     @Listen("onClick = #hideSheet")
@@ -503,22 +507,22 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
 
     @Listen("onClick = menuitem[label='Add Sheet']")
     public void addSheet() throws ExecutionException, InterruptedException {
-        selectedRange.getWorkbook().insertWorksheet();
+        spreadsheet.getActiveSelection().getWorkbook().insertWorksheet();
     }
 
     @Listen("onClick = #freezePane")
     public void freezePane() {
-        selectedRange.freezePanes();
+        spreadsheet.getActiveSelection().freezePanes();
     }
 
     @Listen("onClick = #autoFill")
     public void autoFill() {
-        selectedRange.setAutoFill(Ranges.expandToRow(selectedRange, 5), AutoFillType.FillDefault);
+        spreadsheet.getActiveSelection().setAutoFill(Ranges.expandToRow(spreadsheet.getActiveSelection(), 5), AutoFillType.FillDefault);
     }
 
     @Listen("onClick = #sort")
     public void sort() {
-        selectedRange.sort(selectedRange.getColumns(), SortOrder.Ascending, null, null, null, null, YesNoGuess.No, false, SortOrientation.SortColumns, null, null, null);
+        spreadsheet.getActiveSelection().sort(spreadsheet.getActiveSelection().getColumns(), SortOrder.Ascending, null, null, null, null, YesNoGuess.No, false, SortOrientation.SortColumns, null, null, null);
     }
 
 }
