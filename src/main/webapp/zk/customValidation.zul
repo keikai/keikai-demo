@@ -1,4 +1,4 @@
 <zk xmlns:x="xhtml" xmlns:n="native" xmlns:ca="client/attribute">
-    <script id="kkScript" defer="true" />
-        <div id="ss" width="100%" height="100%" apply="keikai.demo.zk.CustomValidationComposer"/>
+    <script id="kkScript" defer="true"/>
+    <div id="ss" width="100%" height="100%" apply="keikai.demo.zk.CustomValidationComposer"/>
 </zk>
