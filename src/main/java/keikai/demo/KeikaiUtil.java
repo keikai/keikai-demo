@@ -1,5 +1,7 @@
 package keikai.demo;
 
+import org.zkoss.zk.ui.*;
+
 import java.util.logging.*;
 
 public class KeikaiUtil {
@@ -11,5 +13,10 @@ public class KeikaiUtil {
         handler.setFormatter(new SimpleFormatter());
         handler.setLevel(Level.ALL);
         log.addHandler(handler);
+    }
+
+    static public String getKeikaiServerAddress(Execution execution) {
+        String ip = execution.getParameter("server");
+        return ip == null ? Configuration.LOCAL_KEIKAI_SERVER : "http://" + ip;
     }
 }
