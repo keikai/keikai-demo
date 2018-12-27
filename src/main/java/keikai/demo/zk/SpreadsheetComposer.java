@@ -1,27 +1,16 @@
-/* KKComposer.java
-
-	Purpose:
-		
-	Description:
-		
-	History:
-		Created by Hawk Chen
-
-Copyright (C) 2017 Potix Corporation. All Rights Reserved.
-*/
 package keikai.demo.zk;
 
 import io.keikai.client.api.*;
 import io.keikai.client.api.Fill.PatternFill;
 import io.keikai.client.api.event.*;
 import io.keikai.client.api.event.Events;
-import io.keikai.client.api.ui.UIActivity;
+import io.keikai.client.api.ui.*;
 import io.keikai.util.*;
 import keikai.demo.*;
+import keikai.demo.zk.AsyncRender;
 import org.apache.commons.io.FileUtils;
 import org.slf4j.*;
 import org.zkoss.zhtml.Script;
-import org.zkoss.zk.scripting.Interpreters;
 import org.zkoss.zk.ui.*;
 import org.zkoss.zk.ui.event.*;
 import org.zkoss.zk.ui.select.SelectorComposer;
@@ -34,7 +23,7 @@ import org.zkoss.zul.ext.Selectable;
 import java.io.*;
 import java.util.*;
 import java.util.concurrent.*;
-import java.util.function.*;
+import java.util.function.Consumer;
 
 import static io.keikai.client.api.Borders.BorderIndex;
 import static io.keikai.client.api.Range.*;
@@ -81,8 +70,7 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
     @Wire
     private Popup filePopup;
 
-    @Wire
-    private Popup contextMenu;
+
     @Wire
     private Selectbox fillPatternBox;
     @Wire
@@ -169,7 +157,7 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
                     .ifPresent(appendInfo);
             AsyncRender.getUpdateRunner(desktop, () -> {
                 if (optionalCellValue.isPresent()
-                    && optionalCellValue.get().isFormula()) {
+                        && optionalCellValue.get().isFormula()) {
                     cellValueBox.setRawValue(rangeValue.getCellValue().getFormula());
                 } else {
                     cellValueBox.setRawValue(rangeValue.getValue());
@@ -191,15 +179,9 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
                         + keyEvent.isMetaKey());
             }).run();
         };
-        // open a context menu
-        ExceptionalConsumer<RangeEvent> mouseListener = (e) -> {
-            CellMouseEvent mouseEvent = (CellMouseEvent) e;
-            AsyncRender.getUpdateRunner(desktop, () -> {
-                contextMenu.open(mouseEvent.getPageX(), mouseEvent.getPageY());
-            }).run();
-        };
+
         spreadsheet.addEventListener(Events.ON_KEY_DOWN, keyListener::accept);
-        spreadsheet.addEventListener(Events.ON_CELL_RIGHT_CLICK, mouseListener::accept);
+//        spreadsheet.addEventListener(Events.ON_CELL_RIGHT_CLICK, mouseListener::accept);
         spreadsheet.setUIActivityCallback(new UIActivity() {
             public void onConnect() {
                 logger.debug(">>connected");
@@ -212,24 +194,35 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
         });
 
 
-        ExceptionalConsumer<RangeEvent> mouseHoverListener = (e) -> {
-            CellMouseEvent mouseEvent = (CellMouseEvent) e;
-            if (e.getName().equals(Events.ON_CELL_MOUSE_ENTER)){
-                if (e.getRange().getValue().equals("zk")) {
-                    AsyncRender.getUpdateRunner(desktop, () -> {
-                        imagePopup.open(mouseEvent.getPageX(), mouseEvent.getPageY());
-                    }).run();
-                }
-            }else{
-                if (imagePopup.isVisible()) {
-                    AsyncRender.getUpdateRunner(desktop, () -> {
-                        imagePopup.close();
-                    }).run();
-                }
-            }
-        };
+//        ExceptionalConsumer<RangeEvent> mouseHoverListener = (e) -> {
+//            CellMouseEvent mouseEvent = (CellMouseEvent) e;
+//            if (e.getName().equals(Events.ON_CELL_MOUSE_ENTER)) {
+//                if (e.getRange().getValue().equals("zk")) {
+//                    AsyncRender.getUpdateRunner(desktop, () -> {
+//                        imagePopup.open(mouseEvent.getPageX(), mouseEvent.getPageY());
+//                    }).run();
+//                }
+//            } else {
+//                if (imagePopup.isVisible()) {
+//                    AsyncRender.getUpdateRunner(desktop, () -> {
+//                        imagePopup.close();
+//                    }).run();
+//                }
+//            }
+//        };
+
 //        spreadsheet.addEventListener(Events.ON_CELL_MOUSE_ENTER, mouseHoverListener::accept);
 //        spreadsheet.addEventListener(Events.ON_CELL_MOUSE_LEAVE, mouseHoverListener::accept);
+//        spreadsheet.addEventListener(Events.ON_EDIT_START, (CellEditEvent event)-> {
+//            System.out.println(">start");
+//            System.out.println(event.getText());
+//            System.out.println(event.getRange().getValue()+"");
+//        });
+//        spreadsheet.addEventListener(Events.ON_EDIT_SAVE, (CellEditEvent event)-> {
+//            System.out.println(">save");
+//            System.out.println(event.getText());
+//            System.out.println(event.getRange().getValue()+"");
+//        });
     }
 
     /**
@@ -249,15 +242,19 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
         initialScript.setAsync(true);
         initialScript.setPage(getPage());
         selectedRange = spreadsheet.getRange("A1");
+        spreadsheet.addExceptionHandler(throwable -> {
+            logger.error("Something wrong in Keikai: ", throwable.getStackTrace());
+        });
+
     }
 
-    private void enableMouseHover(Settings settings ) {
+    private void enableMouseHover(Settings settings) {
         settings.set(Settings.Key.SPREADSHEET_CONFIG, Maps.toMap("enableMouseEvent", true));
     }
 
     private String getKeikaiServerAddress() {
         String ip = Executions.getCurrent().getParameter("server");
-        return ip == null ? Configuration.LOCAL_KEIKAI_SERVER: "http://" + ip;
+        return ip == null ? Configuration.LOCAL_KEIKAI_SERVER : "http://" + ip;
     }
 
     private void initMenubar() {
@@ -299,12 +296,8 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
      * Can't import a book more than once, we should delete the previous book first.
      */
     @Listen("onClick = menuitem[iconSclass='z-icon-file']")
-    public void newFile() throws ExecutionException, InterruptedException, DuplicateNameException, AbortedException {
-        try {
-            importFile(BLANK_XLSX);
-        } catch (IOException e) {
-            Clients.showNotification(e.getMessage());
-        }
+    public void newFile() {
+        importFile(BLANK_XLSX);
     }
 
     @Listen("onClick = menuitem[iconSclass='z-icon-upload']")
@@ -321,7 +314,7 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
     }
 
     @Listen("onClick = menuitem[iconSclass='z-icon-file-excel-o']")
-    public void export() throws FileNotFoundException {
+    public void export(){
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         spreadsheet.export(spreadsheet.getWorkbook().getName(), outputStream);
         Filedownload.save(outputStream.toByteArray(), "application/excel", spreadsheet.getWorkbook().getName());
@@ -471,8 +464,10 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
     @Listen("onClick = #showStyle")
     public void showCellStyle() throws InterruptedException, ExecutionException {
         CellStyle style = selectedRange.getCellStyle();
-        ((Label) info.getFirstChild()).setValue(style.toString());
-        info.open(info.getPreviousSibling(), "after_center");
+//        ((Label) info.getFirstChild()).setValue(style.toString());
+//        info.open(info.getPreviousSibling(), "after_center");
+
+        spreadsheet.getRange("B4").freezePanes();
     }
 
     @Listen("onClick = #lockSelection")
@@ -485,6 +480,7 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
         protection.setLocked(true);
         style.setProtection(protection);
         selectedRange.setCellStyle(style);
+
     }
 
     @Listen("onClick = #unlockSelection")
@@ -504,58 +500,6 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
         spreadsheet.getWorksheet().setVisible(Worksheet.Visibility.Hidden);
     }
 
-    /**
-     * selected range should be entire rows
-     */
-    @Listen("onClick = menuitem[label='Delete row']")
-    public void deleteEntireRow() {
-        selectedRange.getEntireRow().delete(DeleteShiftDirection.ShiftUp);
-    }
-
-    /**
-     * selected range should be entire columns
-     */
-    @Listen("onClick = menuitem[label='Delete column']")
-    public void deleteEntireColumn() {
-        selectedRange.getEntireColumn().delete(DeleteShiftDirection.ShiftToLeft);
-    }
-
-    @Listen("onClick = menuitem[label='Shift up']")
-    public void deleteShiftUp() {
-        selectedRange.delete(DeleteShiftDirection.ShiftUp);
-    }
-
-    @Listen("onClick = menuitem[label='Shift left']")
-    public void deleteShiftLeft() {
-        selectedRange.delete(DeleteShiftDirection.ShiftToLeft);
-    }
-
-
-    /**
-     * selected range should be entire columns
-     */
-    @Listen("onClick = menuitem[label='Insert column']")
-    public void insertColumn() {
-        selectedRange.getEntireColumn().insert(InsertShiftDirection.ShiftToRight, InsertFormatOrigin.LeftOrAbove);
-    }
-
-    /**
-     * selected range should be entire rows
-     */
-    @Listen("onClick = menuitem[label='Insert row']")
-    public void insertRow() {
-        selectedRange.getEntireRow().insert(InsertShiftDirection.ShiftDown, InsertFormatOrigin.LeftOrAbove);
-    }
-
-    @Listen("onClick = menuitem[label='Shift right']")
-    public void insertShiftRight() {
-        selectedRange.insert(InsertShiftDirection.ShiftToRight, InsertFormatOrigin.LeftOrAbove);
-    }
-
-    @Listen("onClick = menuitem[label='Shift down']")
-    public void insertShiftDown() {
-        selectedRange.insert(InsertShiftDirection.ShiftDown, InsertFormatOrigin.LeftOrAbove);
-    }
 
     @Listen("onClick = menuitem[label='Add Sheet']")
     public void addSheet() throws ExecutionException, InterruptedException {

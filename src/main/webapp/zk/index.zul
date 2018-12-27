@@ -3,7 +3,6 @@
     <vlayout id="root" apply="keikai.demo.zk.SpreadsheetComposer" width="100%" height="800px">
 		<apply templateURI="toolbar.zul"/>
 		<apply templateURI="statusBar.zul"/>
-        <div id="myss" width="1300px" height="700px" ca:data-show-context-menu="false"/>
-		<apply templateURI="contextMenu.zul"/>
+        <div id="myss" width="1300px" height="700px" />
     </vlayout>
 </zk>
