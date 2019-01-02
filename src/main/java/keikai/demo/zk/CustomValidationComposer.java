@@ -58,6 +58,16 @@ public class CustomValidationComposer extends SelectorComposer<Component> {
             return text.toString().contains("zk"); // return true to accept, false to reject.
         });
         range.setDataValidation(dataValidation);
+
+        //paint background color
+        CellStyle style = range.createCellStyle();
+        Fill.PatternFill fill = style.createPatternFill();
+        fill.setBackgroundColor("#9ac7ed");
+        fill.setPatternType(Fill.PatternFill.PatternType.Solid);
+        style.setFill(fill);
+        range.setCellStyle(style);
+
+        range.getCell(1,1).setValue("enter something here");
     }
 
 }
