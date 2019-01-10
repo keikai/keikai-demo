@@ -1,4 +1,5 @@
 <?script src="canvasTool.js" ?>
+<?import io.keikai.client.* ?>
 <zk xmlns:x="xhtml" xmlns:n="native" xmlns:ca="client/attribute">
     <vlayout id="root" apply="keikai.demo.zk.SpreadsheetComposer" width="100%" height="800px">
 		<apply templateURI="toolbar.zul"/>

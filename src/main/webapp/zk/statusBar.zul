@@ -5,6 +5,7 @@
         }
     </style>
     <hlayout id="statusBar" spacing="10px" style="border: 1px solid black;padding:2px">
+        <label value="${Version.UID}"/>
         <label value="${serverAddress}"/>
         <label id="cell" value="A1" sclass="header"/>
         :
