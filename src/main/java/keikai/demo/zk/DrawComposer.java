@@ -12,20 +12,14 @@ Copyright (C) 2017 Potix Corporation. All Rights Reserved.
 package keikai.demo.zk;
 
 import io.keikai.client.api.*;
-import io.keikai.client.api.event.*;
 import keikai.demo.Configuration;
-import org.apache.commons.io.FileUtils;
 import org.zkoss.zhtml.Script;
 import org.zkoss.zk.ui.*;
-import org.zkoss.zk.ui.event.UploadEvent;
 import org.zkoss.zk.ui.select.SelectorComposer;
-import org.zkoss.zk.ui.select.annotation.*;
-import org.zkoss.zk.ui.util.Clients;
-import org.zkoss.zul.*;
+import org.zkoss.zk.ui.select.annotation.Wire;
+import org.zkoss.zul.Label;
 
 import java.io.*;
-import java.util.HashMap;
-import java.util.function.*;
 
 
 /**
@@ -72,7 +66,6 @@ public class DrawComposer extends SelectorComposer<Component> {
 	 */
 	private void initSpreadsheet() {
 		spreadsheet = Keikai.newClient(getKeikaiServerAddress()); //connect to keikai server
-		getPage().getDesktop().setAttribute(SpreadsheetCleanUp.SPREADSHEET, spreadsheet); //make spreadsheet get closed
 		//pass target element's id and get keikai script URI
 		String scriptUri = spreadsheet.getURI(getSelf().getFellow("myss").getUuid());
 		//load the initial script to getUpdateRunner spreadsheet at the client

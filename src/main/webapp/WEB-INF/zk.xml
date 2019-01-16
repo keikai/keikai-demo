@@ -4,9 +4,6 @@
     <system-config>
          <id-generator-class>keikai.demo.ComponentIDFirstGenerator</id-generator-class>
      </system-config>
-    <listener>
-        <listener-class>keikai.demo.zk.SpreadsheetCleanUp</listener-class>
-    </listener>
     <library-property>
         <name>org.zkoss.theme.preferred</name>
         <value>breeze</value>

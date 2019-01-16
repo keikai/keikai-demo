@@ -48,7 +48,6 @@ public class IntegrationController extends SelectorComposer<Component> {
      */
     private void initSpreadsheet() {
         fluSpreadsheet = Keikai.newClient(Configuration.LOCAL_KEIKAI_SERVER); //connect to keikai server
-        getPage().getDesktop().setAttribute(SpreadsheetCleanUp.SPREADSHEET, fluSpreadsheet); //make spreadsheet get closed
         //pass target element's id and get keikai script URI
         String scriptUri = fluSpreadsheet.getURI(spreadsheetBlock.getUuid());
         //load the initial script to getUpdateRunner spreadsheet at the client
