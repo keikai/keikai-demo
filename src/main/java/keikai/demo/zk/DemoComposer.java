@@ -13,6 +13,7 @@ package keikai.demo.zk;
 
 import io.keikai.client.api.*;
 import io.keikai.client.api.event.*;
+import io.keikai.client.api.ui.UIActivity;
 import keikai.demo.Configuration;
 import org.apache.commons.io.FileUtils;
 import org.zkoss.zhtml.Script;
@@ -79,7 +80,14 @@ public class DemoComposer extends SelectorComposer<Component> {
 	 */
 	private void initSpreadsheet() {
 		spreadsheet = Keikai.newClient(getKeikaiServerAddress()); //connect to keikai server
-		getPage().getDesktop().setAttribute(SpreadsheetCleanUp.SPREADSHEET, spreadsheet); //make spreadsheet get closed
+		spreadsheet.setUIActivityCallback(new UIActivity() {
+			public void onConnect() {
+			}
+
+			public void onDisconnect() {
+				spreadsheet.close();
+			}
+		});
 		//pass target element's id and get keikai script URI
 		String scriptUri = spreadsheet.getURI(getSelf().getFellow("myss").getUuid());
 		//load the initial script to getUpdateRunner spreadsheet at the client

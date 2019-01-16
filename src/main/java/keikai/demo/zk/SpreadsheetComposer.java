@@ -236,7 +236,14 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
         Settings settings = Settings.DEFAULT_SETTINGS.clone();
         enableMouseHover(settings);
         spreadsheet = Keikai.newClient(getKeikaiServerAddress(), settings); //connect to keikai server
-        getPage().getDesktop().setAttribute(SpreadsheetCleanUp.SPREADSHEET, spreadsheet); //make spreadsheet get closed
+        spreadsheet.setUIActivityCallback(new UIActivity() {
+            public void onConnect() {
+            }
+
+            public void onDisconnect() {
+                spreadsheet.close();
+            }
+        });
         //pass target element's id and get keikai script URI
         String scriptUri = spreadsheet.getURI(getSelf().getFellow("myss").getUuid());
         //load the initial script to getUpdateRunner spreadsheet at the client
