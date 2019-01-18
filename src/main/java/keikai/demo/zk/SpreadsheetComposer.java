@@ -186,18 +186,6 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
 
         spreadsheet.addEventListener(Events.ON_KEY_DOWN, keyListener::accept);
 //        spreadsheet.addEventListener(Events.ON_CELL_RIGHT_CLICK, mouseListener::accept);
-        spreadsheet.setUIActivityCallback(new UIActivity() {
-            public void onConnect() {
-                logger.debug(">>connected");
-            }
-
-            public void onDisconnect() {
-                logger.debug(">>disconnected");
-                spreadsheet.close();
-            }
-        });
-
-
 //        ExceptionalConsumer<RangeEvent> mouseHoverListener = (e) -> {
 //            CellMouseEvent mouseEvent = (CellMouseEvent) e;
 //            if (e.getName().equals(Events.ON_CELL_MOUSE_ENTER)) {
@@ -234,16 +222,9 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
      */
     private void initSpreadsheet() {
         Settings settings = Settings.DEFAULT_SETTINGS.clone();
-        enableMouseHover(settings);
+//        enableMouseHover(settings);
         spreadsheet = Keikai.newClient(getKeikaiServerAddress(), settings); //connect to keikai server
-        spreadsheet.setUIActivityCallback(new UIActivity() {
-            public void onConnect() {
-            }
-
-            public void onDisconnect() {
-                spreadsheet.close();
-            }
-        });
+        spreadsheet.setUIActivityCallback(new CloseSpreadsheetActivity(spreadsheet));
         //pass target element's id and get keikai script URI
         String scriptUri = spreadsheet.getURI(getSelf().getFellow("myss").getUuid());
         //load the initial script to getUpdateRunner spreadsheet at the client
@@ -478,7 +459,6 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
 //        ((Label) info.getFirstChild()).setValue(style.toString());
 //        info.open(info.getPreviousSibling(), "after_center");
 
-        spreadsheet.getRange("B4").freezePanes();
     }
 
     @Listen("onClick = #lockSelection")

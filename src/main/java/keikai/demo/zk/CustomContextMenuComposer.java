@@ -3,7 +3,7 @@ package keikai.demo.zk;
 import io.keikai.client.api.*;
 import io.keikai.client.api.event.*;
 import io.keikai.client.api.ui.UIActivity;
-import keikai.demo.KeikaiUtil;
+import keikai.demo.*;
 import org.zkoss.zk.ui.*;
 import org.zkoss.zk.ui.select.SelectorComposer;
 import org.zkoss.zk.ui.select.annotation.Wire;
@@ -41,15 +41,7 @@ public class CustomContextMenuComposer extends SelectorComposer<Component> {
         String scriptUri = spreadsheet.getURI(getSelf().getFellow("ss").getUuid());
         //load the initial script to getUpdateRunner spreadsheet at the client
         kkScript.setSrc(scriptUri);
-        spreadsheet.setUIActivityCallback(new UIActivity() {
-            public void onConnect() {
-            }
-
-            public void onDisconnect() {
-                spreadsheet.close();
-            }
-        });
-
+        spreadsheet.setUIActivityCallback(new CloseSpreadsheetActivity(spreadsheet));
     }
 
 
