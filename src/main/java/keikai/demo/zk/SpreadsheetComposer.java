@@ -263,7 +263,9 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
         fillPatternBox.setModel(new ListModelArray<>(PatternFill.PatternType.values()));
         ((Selectable<PatternFill.PatternType>) fillPatternBox.getModel()).addToSelection(PatternFill.PatternType.Solid);
 
-        fileListModel = new ListModelList(generateBookList());
+        String[] xlsxFiles = generateBookList();
+        Arrays.sort(xlsxFiles);
+        fileListModel = new ListModelList(xlsxFiles);
         filelistBox.setModel(fileListModel);
     }
 
