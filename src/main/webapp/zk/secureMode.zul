@@ -1,0 +1,6 @@
+<zk xmlns:x="xhtml">
+    <div hflex="1" vflex="1" apply="keikai.demo.zk.SecureModeComposer">
+    <x:script id="uiClientScript" defer="true" async="true"/>
+    <div id="myss" width="1300px" vflex="1"/>
+    </div>
+</zk>
