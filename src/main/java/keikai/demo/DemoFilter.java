@@ -4,10 +4,12 @@ package keikai.demo;
 import io.keikai.client.api.*;
 
 import javax.servlet.*;
-import javax.servlet.http.*;
+import javax.servlet.Filter;
+import javax.servlet.http.HttpServletRequest;
 import java.io.*;
-import static io.keikai.client.api.Borders.*;
-import static io.keikai.client.api.Border.*;
+
+import static io.keikai.client.api.Border.Style;
+import static io.keikai.client.api.Borders.BorderIndex;
 
 //@WebFilter(filterName = "DemoFilter",
 //urlPatterns = {"/javaClientDemo.jsp"})
