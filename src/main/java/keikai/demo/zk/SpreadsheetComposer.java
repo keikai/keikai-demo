@@ -7,6 +7,7 @@ import io.keikai.client.api.event.Events;
 import io.keikai.client.api.ui.*;
 import io.keikai.util.*;
 import keikai.demo.*;
+import keikai.demo.Configuration;
 import keikai.demo.zk.AsyncRender;
 import org.apache.commons.io.FileUtils;
 import org.slf4j.*;
@@ -15,7 +16,7 @@ import org.zkoss.zk.ui.*;
 import org.zkoss.zk.ui.event.*;
 import org.zkoss.zk.ui.select.SelectorComposer;
 import org.zkoss.zk.ui.select.annotation.*;
-import org.zkoss.zk.ui.util.Clients;
+import org.zkoss.zk.ui.util.*;
 import org.zkoss.zkex.zul.Colorbox;
 import org.zkoss.zul.*;
 import org.zkoss.zul.ext.Selectable;
@@ -99,6 +100,12 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
     public void doBeforeComposeChildren(Component comp) throws Exception {
         super.doBeforeComposeChildren(comp);
         initStatusBar();
+        getPage().getDesktop().addListener(new DesktopCleanup() {
+            @Override
+            public void cleanup(Desktop desktop) throws Exception {
+                System.out.println(spreadsheet.isClosed());
+            }
+        });
     }
 
     @Override
@@ -217,6 +224,7 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
 //        });
     }
 
+
     /**
      * get a spreadsheet java client and getUpdateRunner spreadsheet on a browser
      */
@@ -224,7 +232,6 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
         Settings settings = Settings.DEFAULT_SETTINGS.clone();
 //        enableMouseHover(settings);
         spreadsheet = Keikai.newClient(getKeikaiServerAddress(), settings); //connect to keikai server
-        spreadsheet.setUIActivityCallback(new CloseSpreadsheetActivity(spreadsheet));
         //pass target element's id and get keikai script URI
         String scriptUri = spreadsheet.getURI(getSelf().getFellow("myss").getUuid());
         //load the initial script to getUpdateRunner spreadsheet at the client

@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<zk>
+<zk xmlns="http://www.zkoss.org/2005/zk/config"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.zkoss.org/2005/zk/config http://www.zkoss.org/2005/zk/config/zk.xsd">
     <system-config>
          <id-generator-class>keikai.demo.ComponentIDFirstGenerator</id-generator-class>
      </system-config>
@@ -8,4 +10,7 @@
         <name>org.zkoss.theme.preferred</name>
         <value>breeze</value>
     </library-property>
+    <session-config>
+        <max-desktops-per-session>1</max-desktops-per-session>
+    </session-config>
 </zk>
