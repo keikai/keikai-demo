@@ -61,7 +61,7 @@ public class IntegrationController extends SelectorComposer<Component> {
         File file = new File(WebApps.getCurrent().getRealPath(Configuration.DEMO_BOOK_PATH), fileName);
         final Desktop desktop = getPage().getDesktop();
         try {
-            fluSpreadsheet.imports(fileName, file);
+            fluSpreadsheet.importAndReplace(fileName, file);
         } catch (Exception e) {
             e.printStackTrace();
         }
