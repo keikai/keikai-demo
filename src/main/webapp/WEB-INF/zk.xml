@@ -10,7 +10,4 @@
         <name>org.zkoss.theme.preferred</name>
         <value>breeze</value>
     </library-property>
-    <session-config>
-        <max-desktops-per-session>1</max-desktops-per-session>
-    </session-config>
 </zk>
