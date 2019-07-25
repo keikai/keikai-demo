@@ -128,13 +128,20 @@ public class SpreadsheetComposer extends SelectorComposer<Component> {
         insertDataByRow(200);
     }
 
-    private void importFile(String fileName){
-        File template = new File(BOOK_FOLDER, fileName);
+    /**
+     * allow to import multiple books, just display the file imported last time.
+     * @param fileName
+     * @return
+     */
+    private Workbook importFile(String fileName) {
         try {
-            spreadsheet.importAndReplace(fileName, template);
-        } catch (AbortedException | FileNotFoundException e) {
+            Workbook workbook = spreadsheet.imports(fileName, new File(BOOK_FOLDER, fileName), true);
+            spreadsheet.setActiveWorkbook(workbook.getName());
+            return workbook;
+        } catch (AbortedException | FileNotFoundException |DuplicateNameException e) {
             e.printStackTrace();
         }
+        return null;
     }
 
     /**
